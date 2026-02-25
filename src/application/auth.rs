@@ -51,6 +51,7 @@ impl WebsocketInfo {
     /// # Returns
     /// * Password in format "CST-{cst}|XST-{token}" if both tokens are available
     /// * Empty string if tokens are not available
+    #[must_use]
     pub fn get_ws_password(&self) -> String {
         match (&self.cst, &self.x_security_token) {
             (Some(cst), Some(x_security_token)) => {
@@ -87,6 +88,7 @@ pub struct Session {
 impl Session {
     /// Checks if this session uses OAuth authentication
     #[must_use]
+    #[inline]
     pub fn is_oauth(&self) -> bool {
         self.oauth_token.is_some()
     }
@@ -100,6 +102,7 @@ impl Session {
     /// * `true` if session is expired or will expire within margin
     /// * `false` if session is still valid
     #[must_use]
+    #[inline]
     pub fn is_expired(&self, margin_seconds: Option<u64>) -> bool {
         let margin = margin_seconds.unwrap_or(60);
         let now = Utc::now().timestamp() as u64;
@@ -112,6 +115,7 @@ impl Session {
     /// * Positive number if session is still valid
     /// * Negative number if session is already expired
     #[must_use]
+    #[inline]
     pub fn seconds_until_expiry(&self) -> u64 {
         self.expires_at - Utc::now().timestamp() as u64
     }
@@ -121,6 +125,7 @@ impl Session {
     /// # Arguments
     /// * `margin_seconds` - Safety margin in seconds (default: 60 = 1 minute)
     #[must_use]
+    #[inline]
     pub fn needs_token_refresh(&self, margin_seconds: Option<u64>) -> bool {
         self.is_expired(margin_seconds)
     }

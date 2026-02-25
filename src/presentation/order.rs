@@ -7,7 +7,10 @@ use pretty_simple_display::DisplaySimple;
 use serde::{Deserialize, Serialize};
 
 /// Order direction (buy or sell)
-#[derive(Debug, Clone, DisplaySimple, Serialize, Deserialize, PartialEq, Default)]
+#[repr(u8)]
+#[derive(
+    Debug, Clone, Copy, DisplaySimple, Serialize, Deserialize, PartialEq, Eq, Hash, Default,
+)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum Direction {
     /// Buy direction (long position)
@@ -18,7 +21,10 @@ pub enum Direction {
 }
 
 /// Order type
-#[derive(Debug, Clone, DisplaySimple, Serialize, Deserialize, PartialEq, Default)]
+#[repr(u8)]
+#[derive(
+    Debug, Clone, Copy, DisplaySimple, Serialize, Deserialize, PartialEq, Eq, Hash, Default,
+)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum OrderType {
     /// Limit order - executed when price reaches specified level
@@ -38,7 +44,10 @@ pub enum OrderType {
 ///
 /// This enum covers various states an order can be in throughout its lifecycle,
 /// from creation to completion or cancellation.
-#[derive(Debug, Clone, DisplaySimple, Serialize, Deserialize, PartialEq, Default)]
+#[repr(u8)]
+#[derive(
+    Debug, Clone, Copy, DisplaySimple, Serialize, Deserialize, PartialEq, Eq, Hash, Default,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Status {
     /// Order has been amended or modified after initial creation
@@ -73,7 +82,10 @@ pub enum Status {
 }
 
 /// Order duration (time in force)
-#[derive(Debug, Clone, DisplaySimple, Serialize, Deserialize, PartialEq, Default)]
+#[repr(u8)]
+#[derive(
+    Debug, Clone, Copy, DisplaySimple, Serialize, Deserialize, PartialEq, Eq, Hash, Default,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum TimeInForce {
     /// Order remains valid until cancelled by the client

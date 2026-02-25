@@ -32,6 +32,7 @@ pub struct RecentPricesRequest<'a> {
 
 impl<'a> RecentPricesRequest<'a> {
     /// Create new parameters with just the epic (required field)
+    #[must_use]
     pub fn new(epic: &'a str) -> Self {
         Self {
             epic,
@@ -40,36 +41,42 @@ impl<'a> RecentPricesRequest<'a> {
     }
 
     /// Set the resolution
+    #[must_use]
     pub fn with_resolution(mut self, resolution: &'a str) -> Self {
         self.resolution = Some(resolution);
         self
     }
 
     /// Set the from date
+    #[must_use]
     pub fn with_from(mut self, from: &'a str) -> Self {
         self.from = Some(from);
         self
     }
 
     /// Set the to date
+    #[must_use]
     pub fn with_to(mut self, to: &'a str) -> Self {
         self.to = Some(to);
         self
     }
 
     /// Set the max points
+    #[must_use]
     pub fn with_max_points(mut self, max_points: i32) -> Self {
         self.max_points = Some(max_points);
         self
     }
 
     /// Set the page size
+    #[must_use]
     pub fn with_page_size(mut self, page_size: i32) -> Self {
         self.page_size = Some(page_size);
         self
     }
 
     /// Set the page number
+    #[must_use]
     pub fn with_page_number(mut self, page_number: i32) -> Self {
         self.page_number = Some(page_number);
         self
@@ -152,6 +159,7 @@ pub struct CreateOrderRequest {
 
 impl CreateOrderRequest {
     /// Creates a new market order, typically used for CFD (Contract for Difference) accounts
+    #[must_use]
     pub fn market(
         epic: String,
         direction: Direction,
@@ -186,6 +194,7 @@ impl CreateOrderRequest {
     }
 
     /// Creates a new limit order, typically used for CFD (Contract for Difference) accounts
+    #[must_use]
     pub fn limit(
         epic: String,
         direction: Direction,
@@ -252,6 +261,7 @@ impl CreateOrderRequest {
     /// Note that this function allows for minimal input (the instrument and size),
     /// while other fields are provided default values. If further customization is required,
     /// you can modify the returned instance as needed.
+    #[must_use]
     pub fn sell_option_to_market(
         epic: String,
         size: f64,
@@ -320,6 +330,7 @@ impl CreateOrderRequest {
     ///
     /// # Notes
     /// - The input `size` is automatically rounded down to two decimal places before being stored.
+    #[must_use]
     pub fn sell_option_to_market_w_force(
         epic: String,
         size: f64,
@@ -376,6 +387,7 @@ impl CreateOrderRequest {
     ///
     /// # Note
     /// Ensure the `epic` and `size` values provided are valid and match required market conditions.
+    #[must_use]
     pub fn buy_option_to_market(
         epic: String,
         size: f64,
@@ -439,6 +451,7 @@ impl CreateOrderRequest {
     /// * This function assumes that other order-related fields such as `level`, `stop_level`, `stop_distance`,
     ///   etc., are set to their defaults or require specific business logic, such as
     ///   `DEFAULT_ORDER_BUY_SIZE` for the initial buy size.
+    #[must_use]
     pub fn buy_option_to_market_w_force(
         epic: String,
         size: f64,
@@ -477,18 +490,21 @@ impl CreateOrderRequest {
     }
 
     /// Adds a stop loss to the order
+    #[must_use]
     pub fn with_stop_loss(mut self, stop_level: f64) -> Self {
         self.stop_level = Some(stop_level);
         self
     }
 
     /// Adds a take profit to the order
+    #[must_use]
     pub fn with_take_profit(mut self, limit_level: f64) -> Self {
         self.limit_level = Some(limit_level);
         self
     }
 
     /// Adds a trailing stop loss to the order
+    #[must_use]
     pub fn with_trailing_stop_loss(mut self, trailing_stop_increment: f64) -> Self {
         self.trailing_stop = Some(true);
         self.trailing_stop_increment = Some(trailing_stop_increment);
@@ -496,24 +512,28 @@ impl CreateOrderRequest {
     }
 
     /// Adds a reference to the order
+    #[must_use]
     pub fn with_reference(mut self, reference: String) -> Self {
         self.deal_reference = Some(reference);
         self
     }
 
     /// Adds a stop distance to the order
+    #[must_use]
     pub fn with_stop_distance(mut self, stop_distance: f64) -> Self {
         self.stop_distance = Some(stop_distance);
         self
     }
 
     /// Adds a limit distance to the order
+    #[must_use]
     pub fn with_limit_distance(mut self, limit_distance: f64) -> Self {
         self.limit_distance = Some(limit_distance);
         self
     }
 
     /// Adds a guaranteed stop to the order
+    #[must_use]
     pub fn with_guaranteed_stop(mut self, guaranteed: bool) -> Self {
         self.guaranteed_stop = guaranteed;
         self
@@ -588,6 +608,7 @@ pub struct ClosePositionRequest {
 
 impl ClosePositionRequest {
     /// Creates a request to close a position at market price
+    #[must_use]
     pub fn market(deal_id: String, direction: Direction, size: f64) -> Self {
         Self {
             deal_id: Some(deal_id),
@@ -605,6 +626,7 @@ impl ClosePositionRequest {
     /// Creates a request to close a position at a specific price level
     ///
     /// This is useful for instruments that don't support market orders
+    #[must_use]
     pub fn limit(deal_id: String, direction: Direction, size: f64, level: f64) -> Self {
         Self {
             deal_id: Some(deal_id),
@@ -628,6 +650,7 @@ impl ClosePositionRequest {
     /// * `deal_id` - The ID of the deal to close
     /// * `direction` - The direction of the closing order (opposite of the position direction)
     /// * `size` - The size of the position to close
+    #[must_use]
     pub fn close_option_to_market_by_id(deal_id: String, direction: Direction, size: f64) -> Self {
         // For options, we need to use limit orders with appropriate levels
         // Use reasonable levels based on direction to ensure fill while being accepted
@@ -660,6 +683,7 @@ impl ClosePositionRequest {
     /// * `expiry` - The expiry date of the option
     /// * `direction` - The direction of the closing order (opposite of the position direction)
     /// * `size` - The size of the position to close
+    #[must_use]
     pub fn close_option_to_market_by_epic(
         epic: String,
         expiry: String,
@@ -757,6 +781,7 @@ impl From<WorkingOrder> for CreateWorkingOrderRequest {
 
 impl CreateWorkingOrderRequest {
     /// Creates a new limit working order
+    #[must_use]
     pub fn limit(
         epic: String,
         direction: Direction,
@@ -785,6 +810,7 @@ impl CreateWorkingOrderRequest {
     }
 
     /// Creates a new stop working order
+    #[must_use]
     pub fn stop(
         epic: String,
         direction: Direction,
@@ -813,18 +839,21 @@ impl CreateWorkingOrderRequest {
     }
 
     /// Adds a stop loss to the working order
+    #[must_use]
     pub fn with_stop_loss(mut self, stop_level: f64) -> Self {
         self.stop_level = Some(stop_level);
         self
     }
 
     /// Adds a take profit to the working order
+    #[must_use]
     pub fn with_take_profit(mut self, limit_level: f64) -> Self {
         self.limit_level = Some(limit_level);
         self
     }
 
     /// Adds a reference to the working order
+    #[must_use]
     pub fn with_reference(mut self, reference: String) -> Self {
         self.deal_reference = Some(reference);
         self
@@ -844,6 +873,7 @@ impl CreateWorkingOrderRequest {
     ///
     /// In the example above, the expiration date for the order is set to
     /// "2023-12-31T23:59:59Z" and the `time_in_force` policy is set to `GoodTillDate`.
+    #[must_use]
     pub fn expires_at(mut self, date: String) -> Self {
         self.time_in_force = TimeInForce::GoodTillDate;
         self.good_till_date = Some(date);
@@ -866,6 +896,7 @@ impl CreateWorkingOrderRequest {
     ///
     /// Note: The function uses the UTC timezone for calculating the date and time.
     ///
+    #[must_use]
     pub fn expires_tomorrow(mut self) -> Self {
         self.time_in_force = TimeInForce::GoodTillDate;
         let tomorrow = Utc::now() + Duration::days(1);
@@ -889,6 +920,7 @@ impl CreateWorkingOrderRequest {
     ///
     /// Note: This method assumes that the runtime uses the `chrono` crate for
     /// time handling and formatting.
+    #[must_use]
     pub fn expires_in(mut self, duration: Duration) -> Self {
         self.time_in_force = TimeInForce::GoodTillDate;
         let tomorrow = Utc::now() + duration;

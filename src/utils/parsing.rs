@@ -120,26 +120,26 @@ pub fn parse_instrument_name(instrument_name: &str) -> ParsedOptionInfo {
     // Lazy initialization of regex patterns
     lazy_static::lazy_static! {
         // Pattern for standard options like "US Tech 100 19200 CALL ($1)"
-        static ref OPTION_PATTERN: Regex = Regex::new(r"^(.*?)\s+(\d+(?:\.\d+)?)\s+(CALL|PUT)(?:\s+\(.*?\))?$").unwrap();
+        static ref OPTION_PATTERN: Regex = Regex::new(r"^(.*?)\s+(\d+(?:\.\d+)?)\s+(CALL|PUT)(?:\s+\(.*?\))?$").expect("valid option regex");
 
         // Pattern for options with decimal strikes like "Volatility Index 10.5 PUT ($1)"
-        static ref DECIMAL_OPTION_PATTERN: Regex = Regex::new(r"^(.*?)\s+(\d+\.\d+)\s+(CALL|PUT)(?:\s+\(.*?\))?$").unwrap();
+        static ref DECIMAL_OPTION_PATTERN: Regex = Regex::new(r"^(.*?)\s+(\d+\.\d+)\s+(CALL|PUT)(?:\s+\(.*?\))?$").expect("valid decimal option regex");
 
         // Pattern for options with no space between parenthesis and strike like "Weekly Germany 40 (Wed)27500 PUT"
-        static ref SPECIAL_OPTION_PATTERN: Regex = Regex::new(r"^(.*?)\s+\(([^)]+)\)(\d+)\s+(CALL|PUT)(?:\s+\(.*?\))?$").unwrap();
+        static ref SPECIAL_OPTION_PATTERN: Regex = Regex::new(r"^(.*?)\s+\(([^)]+)\)(\d+)\s+(CALL|PUT)(?:\s+\(.*?\))?$").expect("valid special option regex");
 
         // Pattern for options with incomplete parenthesis like "Weekly USDJPY 12950 CALL (Y100"
-        static ref INCOMPLETE_PAREN_PATTERN: Regex = Regex::new(r"^(.*?)\s+(\d+(?:\.\d+)?)\s+(CALL|PUT)\s+\([^)]*$").unwrap();
+        static ref INCOMPLETE_PAREN_PATTERN: Regex = Regex::new(r"^(.*?)\s+(\d+(?:\.\d+)?)\s+(CALL|PUT)\s+\([^)]*$").expect("valid incomplete paren regex");
 
         // Pattern for other instruments that don't follow the option pattern
-        static ref GENERIC_PATTERN: Regex = Regex::new(r"^(.*?)(?:\s+\(.*?\))?$").unwrap();
+        static ref GENERIC_PATTERN: Regex = Regex::new(r"^(.*?)(?:\s+\(.*?\))?$").expect("valid generic regex");
 
         // Pattern to clean up asset names
-        static ref DAILY_WEEKLY_PATTERN: Regex = Regex::new(r"^(Daily|Weekly)\s+(.*?)$").unwrap();
-        static ref END_OF_MONTH_PATTERN: Regex = Regex::new(r"^(End of Month)\s+(.*?)$").unwrap();
-        static ref QUARTERLY_PATTERN: Regex = Regex::new(r"^(Quarterly)\s+(.*?)$").unwrap();
-        static ref MONTHLY_PATTERN: Regex = Regex::new(r"^(Monthly)\s+(.*?)$").unwrap();
-        static ref SUFFIX_PATTERN: Regex = Regex::new(r"^(.*?)\s+\(.*?\)$").unwrap();
+        static ref DAILY_WEEKLY_PATTERN: Regex = Regex::new(r"^(Daily|Weekly)\s+(.*?)$").expect("valid daily/weekly regex");
+        static ref END_OF_MONTH_PATTERN: Regex = Regex::new(r"^(End of Month)\s+(.*?)$").expect("valid end-of-month regex");
+        static ref QUARTERLY_PATTERN: Regex = Regex::new(r"^(Quarterly)\s+(.*?)$").expect("valid quarterly regex");
+        static ref MONTHLY_PATTERN: Regex = Regex::new(r"^(Monthly)\s+(.*?)$").expect("valid monthly regex");
+        static ref SUFFIX_PATTERN: Regex = Regex::new(r"^(.*?)\s+\(.*?\)$").expect("valid suffix regex");
     }
 
     // Helper function to clean up asset names
@@ -149,20 +149,20 @@ pub fn parse_instrument_name(instrument_name: &str) -> ParsedOptionInfo {
 
         // Remove prefixes like "Daily", "Weekly", etc.
         let asset_name = if let Some(captures) = DAILY_WEEKLY_PATTERN.captures(&normalized_name) {
-            captures.get(2).unwrap().as_str().trim()
+            captures.get(2).map_or("", |m| m.as_str()).trim()
         } else if let Some(captures) = END_OF_MONTH_PATTERN.captures(&normalized_name) {
-            captures.get(2).unwrap().as_str().trim()
+            captures.get(2).map_or("", |m| m.as_str()).trim()
         } else if let Some(captures) = QUARTERLY_PATTERN.captures(&normalized_name) {
-            captures.get(2).unwrap().as_str().trim()
+            captures.get(2).map_or("", |m| m.as_str()).trim()
         } else if let Some(captures) = MONTHLY_PATTERN.captures(&normalized_name) {
-            captures.get(2).unwrap().as_str().trim()
+            captures.get(2).map_or("", |m| m.as_str()).trim()
         } else {
             &normalized_name
         };
 
         // Remove suffixes like "(End of Month)", etc.
         let asset_name = if let Some(captures) = SUFFIX_PATTERN.captures(asset_name) {
-            captures.get(1).unwrap().as_str().trim()
+            captures.get(1).map_or("", |m| m.as_str()).trim()
         } else {
             asset_name
         };
@@ -172,39 +172,39 @@ pub fn parse_instrument_name(instrument_name: &str) -> ParsedOptionInfo {
 
     if let Some(captures) = OPTION_PATTERN.captures(instrument_name) {
         // This is an option with strike and type
-        let asset_name = captures.get(1).unwrap().as_str().trim();
+        let asset_name = captures.get(1).map_or("", |m| m.as_str()).trim();
         ParsedOptionInfo {
             asset_name: clean_asset_name(asset_name),
-            strike: Some(captures.get(2).unwrap().as_str().to_string()),
-            option_type: Some(captures.get(3).unwrap().as_str().to_string()),
+            strike: captures.get(2).map(|m| m.as_str().to_string()),
+            option_type: captures.get(3).map(|m| m.as_str().to_string()),
         }
     } else if let Some(captures) = SPECIAL_OPTION_PATTERN.captures(instrument_name) {
         // This is a special case like "Weekly Germany 40 (Wed)27500 PUT"
-        let base_name = captures.get(1).unwrap().as_str().trim();
+        let base_name = captures.get(1).map_or("", |m| m.as_str()).trim();
         ParsedOptionInfo {
             asset_name: clean_asset_name(base_name),
-            strike: Some(captures.get(3).unwrap().as_str().to_string()),
-            option_type: Some(captures.get(4).unwrap().as_str().to_string()),
+            strike: captures.get(3).map(|m| m.as_str().to_string()),
+            option_type: captures.get(4).map(|m| m.as_str().to_string()),
         }
     } else if let Some(captures) = INCOMPLETE_PAREN_PATTERN.captures(instrument_name) {
         // This is a case with incomplete parenthesis like "Weekly USDJPY 12950 CALL (Y100"
-        let asset_name = captures.get(1).unwrap().as_str().trim();
+        let asset_name = captures.get(1).map_or("", |m| m.as_str()).trim();
         ParsedOptionInfo {
             asset_name: clean_asset_name(asset_name),
-            strike: Some(captures.get(2).unwrap().as_str().to_string()),
-            option_type: Some(captures.get(3).unwrap().as_str().to_string()),
+            strike: captures.get(2).map(|m| m.as_str().to_string()),
+            option_type: captures.get(3).map(|m| m.as_str().to_string()),
         }
     } else if let Some(captures) = DECIMAL_OPTION_PATTERN.captures(instrument_name) {
         // This is an option with decimal strike
-        let asset_name = captures.get(1).unwrap().as_str().trim();
+        let asset_name = captures.get(1).map_or("", |m| m.as_str()).trim();
         ParsedOptionInfo {
             asset_name: clean_asset_name(asset_name),
-            strike: Some(captures.get(2).unwrap().as_str().to_string()),
-            option_type: Some(captures.get(3).unwrap().as_str().to_string()),
+            strike: captures.get(2).map(|m| m.as_str().to_string()),
+            option_type: captures.get(3).map(|m| m.as_str().to_string()),
         }
     } else if let Some(captures) = GENERIC_PATTERN.captures(instrument_name) {
         // This is a generic instrument without strike or type
-        let asset_name = captures.get(1).unwrap().as_str().trim();
+        let asset_name = captures.get(1).map_or("", |m| m.as_str()).trim();
         ParsedOptionInfo {
             asset_name: clean_asset_name(asset_name),
             strike: None,

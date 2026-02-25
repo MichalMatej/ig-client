@@ -15,6 +15,7 @@ use crate::presentation::order::Direction;
 ///
 /// * `Option<f64>` - The calculated P&L if market prices are available, None otherwise
 ///
+#[must_use]
 pub fn calculate_pnl(position: &Position) -> Option<f64> {
     let (bid, offer) = (position.market.bid, position.market.offer);
 
@@ -43,6 +44,7 @@ pub fn calculate_pnl(position: &Position) -> Option<f64> {
 /// # Returns
 ///
 /// * `Option<f64>` - The calculated percentage return if market prices are available, None otherwise
+#[must_use]
 pub fn calculate_percentage_return(position: &Position) -> Option<f64> {
     let pnl = calculate_pnl(position)?;
     let initial_value = position.position.level * position.position.size;

@@ -28,6 +28,7 @@
 /// [dependencies]
 /// nanoid = "0.4"
 /// ```
+#[must_use]
 pub fn get_id() -> Option<String> {
     let alphabet: Vec<char> = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".chars().collect();
     Some(nanoid::nanoid!(30, &alphabet))

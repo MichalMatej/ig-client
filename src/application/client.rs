@@ -385,11 +385,9 @@ impl MarketService for Client {
                             .unwrap_or_else(|| market_details.instrument.expiry.clone());
 
                         symbol_expiry_map.insert(symbol.clone(), expiry_date);
-                        info!(
-                            "Fetched expiry date for symbol {}: {}",
-                            symbol,
-                            symbol_expiry_map.get(&symbol).unwrap()
-                        );
+                        if let Some(expiry) = symbol_expiry_map.get(&symbol) {
+                            info!("Fetched expiry date for symbol {}: {}", symbol, expiry);
+                        }
                     }
                     Err(e) => {
                         tracing::error!(

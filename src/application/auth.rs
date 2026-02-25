@@ -522,3 +522,19 @@ fn test_v2_response_deserialization() {
     let response: crate::model::auth::V2Response = serde_json::from_str(json).unwrap();
     assert_eq!(response.account_type, "CFD");
 }
+
+#[test]
+fn test_v2_response_deserialization_prod() {
+    let json = r#"{"accountType":"CFD","accountInfo":{"balance":18791.56,"deposit":3300.18,"profitLoss":187.42,"available":14952.68},"currencyIsoCode":"EUR","currencySymbol":"E","currentAccountId":"BS0Y3","lightstreamerEndpoint":"https://apd.marketdatasystems.com","accounts":[{"accountId":"BS0Y3","accountName":"Opciones Prod","preferred":true,"accountType":"CFD"},{"accountId":"BSI1I","accountName":"Barreras y Opciones","preferred":false,"accountType":"CFD"},{"accountId":"BSU96","accountName":"Turbos","preferred":false,"accountType":"PHYSICAL"},{"accountId":"BTCKN","accountName":"CFD","preferred":false,"accountType":"CFD"},{"accountId":"BXNIZ","accountName":"Principal","preferred":false,"accountType":"CFD"}],"clientId":"102828353","timezoneOffset":1,"hasActiveDemoAccounts":true,"hasActiveLiveAccounts":true,"trailingStopsEnabled":false,"reroutingEnvironment":null,"dealingEnabled":true}"#;
+
+    let result: Result<crate::model::auth::SessionResponse, _> = serde_json::from_str(json);
+    match &result {
+        Ok(r) => println!("Success: is_v2={}", r.is_v2()),
+        Err(e) => println!("Error: {}", e),
+    }
+    assert!(result.is_ok(), "Failed to deserialize V2 response (prod)");
+
+    let response: crate::model::auth::V2Response = serde_json::from_str(json).unwrap();
+    assert_eq!(response.account_type, "CFD");
+    assert_eq!(response.current_account_id, "BS0Y3");
+}

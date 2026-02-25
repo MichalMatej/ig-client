@@ -92,27 +92,27 @@ pub struct MarketDetails {
 pub struct DealingRules {
     /// Minimum step distance
     #[serde(rename = "minStepDistance")]
-    pub min_step_distance: StepDistance,
+    pub min_step_distance: Option<StepDistance>,
 
     /// Minimum deal size allowed
     #[serde(rename = "minDealSize")]
-    pub min_deal_size: StepDistance,
+    pub min_deal_size: Option<StepDistance>,
 
     /// Minimum distance for controlled risk stop
     #[serde(rename = "minControlledRiskStopDistance")]
-    pub min_controlled_risk_stop_distance: StepDistance,
+    pub min_controlled_risk_stop_distance: Option<StepDistance>,
 
     /// Minimum distance for normal stop or limit orders
     #[serde(rename = "minNormalStopOrLimitDistance")]
-    pub min_normal_stop_or_limit_distance: StepDistance,
+    pub min_normal_stop_or_limit_distance: Option<StepDistance>,
 
     /// Maximum distance for stop or limit orders
     #[serde(rename = "maxStopOrLimitDistance")]
-    pub max_stop_or_limit_distance: StepDistance,
+    pub max_stop_or_limit_distance: Option<StepDistance>,
 
     /// Controlled risk spacing
     #[serde(rename = "controlledRiskSpacing")]
-    pub controlled_risk_spacing: StepDistance,
+    pub controlled_risk_spacing: Option<StepDistance>,
 
     /// Market order preference setting
     #[serde(rename = "marketOrderPreference")]

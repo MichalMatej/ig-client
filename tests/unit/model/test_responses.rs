@@ -96,30 +96,30 @@ fn multiple_market_details_response_helpers_and_display() {
         controlled_risk_extra_spread: None,
     };
     let dealing_rules = DealingRules {
-        min_step_distance: StepDistance {
+        min_step_distance: Some(StepDistance {
             unit: Some(StepUnit::Points),
             value: Some(1.0),
-        },
-        min_deal_size: StepDistance {
+        }),
+        min_deal_size: Some(StepDistance {
             unit: Some(StepUnit::Points),
             value: Some(1.0),
-        },
-        min_controlled_risk_stop_distance: StepDistance {
+        }),
+        min_controlled_risk_stop_distance: Some(StepDistance {
             unit: Some(StepUnit::Points),
             value: Some(5.0),
-        },
-        min_normal_stop_or_limit_distance: StepDistance {
+        }),
+        min_normal_stop_or_limit_distance: Some(StepDistance {
             unit: Some(StepUnit::Points),
             value: Some(1.0),
-        },
-        max_stop_or_limit_distance: StepDistance {
+        }),
+        max_stop_or_limit_distance: Some(StepDistance {
             unit: Some(StepUnit::Points),
             value: Some(1000.0),
-        },
-        controlled_risk_spacing: StepDistance {
+        }),
+        controlled_risk_spacing: Some(StepDistance {
             unit: Some(StepUnit::Points),
             value: Some(1.0),
-        },
+        }),
         market_order_preference: "AVAILABLE_DEFAULT_OFF".into(),
         trailing_stops_preference: "AVAILABLE_DEFAULT_OFF".into(),
         max_deal_size: Some(100.0),

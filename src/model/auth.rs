@@ -22,16 +22,21 @@ pub enum SessionResponse {
 
 impl SessionResponse {
     /// Checks if this is a v3 session response
+    #[must_use]
+    #[inline]
     pub fn is_v3(&self) -> bool {
         matches!(self, SessionResponse::V3(_))
     }
 
     /// Checks if this is a v2 session response
+    #[must_use]
+    #[inline]
     pub fn is_v2(&self) -> bool {
         matches!(self, SessionResponse::V2(_))
     }
 
     /// Converts the response to a Session object
+    #[must_use]
     pub fn get_session(&self) -> Session {
         match self {
             SessionResponse::V3(v) => Session {
@@ -88,6 +93,8 @@ impl SessionResponse {
     ///
     /// # Arguments
     /// * `margin_seconds` - Safety margin in seconds before actual expiration
+    #[must_use]
+    #[inline]
     pub fn is_expired(&self, margin_seconds: u64) -> bool {
         match self {
             SessionResponse::V3(v) => v.oauth_token.is_expired(margin_seconds),
@@ -138,6 +145,8 @@ impl OAuthToken {
     ///
     /// # Returns
     /// `true` if the token is expired or will expire within the margin, `false` otherwise
+    #[must_use]
+    #[inline]
     pub fn is_expired(&self, margin_seconds: u64) -> bool {
         let expires_in_secs = self.expires_in.parse::<i64>().unwrap_or(0);
         let expiry_time = self.created_at + chrono::Duration::seconds(expires_in_secs);
@@ -154,6 +163,7 @@ impl OAuthToken {
     ///
     /// # Returns
     /// Unix timestamp (seconds since epoch) when the token should be considered expired
+    #[must_use]
     pub fn expire_at(&self, margin_seconds: i64) -> u64 {
         let expires_in_secs = self.expires_in.parse::<i64>().unwrap_or(0);
         let expiry_time = self.created_at + chrono::Duration::seconds(expires_in_secs);
@@ -222,15 +232,20 @@ impl V2Response {
     ///
     /// # Arguments
     /// * `margin_seconds` - Safety margin in seconds before actual expiration
+    ///
+    /// # Returns
+    /// `true` if the session is expired or `expires_in` was never set
+    #[must_use]
     pub fn is_expired(&self, margin_seconds: u64) -> bool {
-        if let Some(expires_in) = self.expires_in {
-            let expiry_time = self.created_at + chrono::Duration::seconds(expires_in as i64);
-            let now = Utc::now();
-            let margin = chrono::Duration::seconds(margin_seconds as i64);
-
-            expiry_time - margin <= now
-        } else {
-            panic!("expires_in not set in V2Response");
+        match self.expires_in {
+            Some(expires_in) => {
+                let expiry_time = self.created_at + chrono::Duration::seconds(expires_in as i64);
+                let now = Utc::now();
+                let margin = chrono::Duration::seconds(margin_seconds as i64);
+                expiry_time - margin <= now
+            }
+            // If expires_in was never set, treat as expired for safety
+            None => true,
         }
     }
 }

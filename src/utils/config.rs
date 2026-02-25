@@ -18,6 +18,8 @@ use tracing::error;
 /// # Returns
 ///
 /// The parsed value of the environment variable or the default value
+#[must_use]
+#[inline]
 pub fn get_env_or_default<T: FromStr>(env_var: &str, default: T) -> T
 where
     <T as FromStr>::Err: Debug,
@@ -38,6 +40,8 @@ where
 ///
 /// # Returns
 /// Parsed value if found and valid, None otherwise
+#[must_use]
+#[inline]
 pub fn get_env_or_none<T: FromStr>(env_var: &str) -> Option<T>
 where
     <T as FromStr>::Err: Debug,

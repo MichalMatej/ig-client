@@ -67,25 +67,27 @@ impl HttpClient {
     }
 
     /// Creates a new client without performing initial authentication
-    pub fn new_lazy(config: Config) -> Self {
+    ///
+    /// # Errors
+    /// Returns `AppError::Network` if the HTTP client cannot be constructed.
+    pub fn new_lazy(config: Config) -> Result<Self, AppError> {
         let config = Arc::new(config);
 
         // Create HTTP client and rate limiter first
         let http_client = HttpInternalClient::builder()
             .user_agent(USER_AGENT)
-            .build()
-            .expect("Failed to create HTTP client");
+            .build()?;
         let rate_limiter = Arc::new(RwLock::new(RateLimiter::new(&config.rate_limiter)));
 
         // Create Auth instance
         let auth = Arc::new(Auth::new(config.clone()));
 
-        Self {
+        Ok(Self {
             auth,
             http_client,
             config,
             rate_limiter,
-        }
+        })
     }
 
     /// Gets WebSocket connection information for Lightstreamer
@@ -341,7 +343,9 @@ impl HttpClient {
 impl Default for HttpClient {
     fn default() -> Self {
         let config = Config::default();
-        Self::new_lazy(config)
+        // SAFETY: Default TLS configuration should always succeed.
+        // This only fails if the system has no TLS backend, which is unrecoverable.
+        Self::new_lazy(config).expect("failed to create default HTTP client")
     }
 }
 

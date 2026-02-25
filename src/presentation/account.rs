@@ -67,8 +67,9 @@ pub struct ActivityPaging {
     pub next: Option<String>,
 }
 
-#[derive(Debug, Copy, Clone, DisplaySimple, Deserialize, Serialize)]
 /// Type of account activity
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, DisplaySimple, Deserialize, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ActivityType {
     /// Activity related to editing stop and limit orders
@@ -266,6 +267,7 @@ impl Position {
     /// - `self.position.direction` must be either `Direction::Buy` or
     ///   `Direction::Sell`.
     ///
+    #[must_use]
     pub fn pnl(&self) -> f64 {
         if let Some(pnl) = self.pnl {
             pnl
@@ -341,6 +343,8 @@ impl Position {
     /// * `true` if the instrument's name contains the substring `"CALL"`, indicating it is a call option.
     /// * `false` otherwise.
     ///
+    #[must_use]
+    #[inline]
     pub fn is_call(&self) -> bool {
         self.market.instrument_name.contains("CALL")
     }
@@ -356,6 +360,8 @@ impl Position {
     /// * `true` - If `instrument_name` contains the substring "PUT".
     /// * `false` - If `instrument_name` does not contain the substring "PUT".
     ///
+    #[must_use]
+    #[inline]
     pub fn is_put(&self) -> bool {
         self.market.instrument_name.contains("PUT")
     }
@@ -364,10 +370,17 @@ impl Position {
 impl Add for Position {
     type Output = Position;
 
+    /// Adds two positions together.
+    ///
+    /// # Invariants
+    /// Both positions must belong to the same market (same EPIC).
+    /// In debug builds, adding positions from different markets will panic.
+    /// In release builds, the left-hand side market is used.
     fn add(self, other: Position) -> Position {
-        if self.market.epic != other.market.epic {
-            panic!("Cannot add positions from different markets");
-        }
+        debug_assert_eq!(
+            self.market.epic, other.market.epic,
+            "cannot add positions from different markets"
+        );
         Position {
             position: self.position + other.position,
             market: self.market,

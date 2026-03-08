@@ -5,17 +5,29 @@
 ******************************************************************************/
 use crate::application::auth::WebsocketInfo;
 use crate::application::interfaces::account::AccountService;
+use crate::application::interfaces::costs::CostsService;
 use crate::application::interfaces::market::MarketService;
+use crate::application::interfaces::operations::OperationsService;
 use crate::application::interfaces::order::OrderService;
+use crate::application::interfaces::sentiment::SentimentService;
+use crate::application::interfaces::watchlist::WatchlistService;
 use crate::error::AppError;
 use crate::model::http::HttpClient;
 use crate::model::requests::RecentPricesRequest;
 use crate::model::requests::{
+    AddToWatchlistRequest, CloseCostsRequest, CreateWatchlistRequest, EditCostsRequest,
+    OpenCostsRequest, UpdateWorkingOrderRequest,
+};
+use crate::model::requests::{
     ClosePositionRequest, CreateOrderRequest, CreateWorkingOrderRequest, UpdatePositionRequest,
 };
 use crate::model::responses::{
-    CategoriesResponse, CategoryInstrumentsResponse, DBEntryResponse, HistoricalPricesResponse,
-    MarketNavigationResponse, MarketSearchResponse, MultipleMarketDetailsResponse,
+    AccountPreferencesResponse, ApplicationDetailsResponse, CategoriesResponse,
+    CategoryInstrumentsResponse, ClientSentimentResponse, CostsHistoryResponse,
+    CreateWatchlistResponse, DBEntryResponse, DurableMediumResponse, HistoricalPricesResponse,
+    IndicativeCostsResponse, MarketNavigationResponse, MarketSearchResponse, MarketSentiment,
+    MultipleMarketDetailsResponse, SinglePositionResponse, StatusResponse,
+    WatchlistMarketsResponse, WatchlistsResponse,
 };
 use crate::model::responses::{
     ClosePositionResponse, CreateOrderResponse, CreateWorkingOrderResponse, UpdatePositionResponse,
@@ -576,6 +588,49 @@ impl AccountService for Client {
                 .ok_or_else(|| AppError::InvalidInput("Could not retrieve metadata".to_string()))?,
         })
     }
+
+    async fn get_preferences(&self) -> Result<AccountPreferencesResponse, AppError> {
+        info!("Getting account preferences");
+        let result: AccountPreferencesResponse = self
+            .http_client
+            .get("accounts/preferences", Some(1))
+            .await?;
+        debug!(
+            "Account preferences obtained: trailing_stops_enabled={}",
+            result.trailing_stops_enabled
+        );
+        Ok(result)
+    }
+
+    async fn update_preferences(&self, trailing_stops_enabled: bool) -> Result<(), AppError> {
+        info!(
+            "Updating account preferences: trailing_stops_enabled={}",
+            trailing_stops_enabled
+        );
+        let request = serde_json::json!({
+            "trailingStopsEnabled": trailing_stops_enabled
+        });
+        let _: serde_json::Value = self
+            .http_client
+            .put("accounts/preferences", &request, Some(1))
+            .await?;
+        debug!("Account preferences updated");
+        Ok(())
+    }
+
+    async fn get_activity_by_period(
+        &self,
+        period_ms: u64,
+    ) -> Result<AccountActivityResponse, AppError> {
+        let path = format!("history/activity/{}", period_ms);
+        info!("Getting account activity for period: {} ms", period_ms);
+        let result: AccountActivityResponse = self.http_client.get(&path, Some(1)).await?;
+        debug!(
+            "Account activity obtained: {} activities",
+            result.activities.len()
+        );
+        Ok(result)
+    }
 }
 
 #[async_trait]
@@ -711,6 +766,289 @@ impl OrderService for Client {
             result.deal_reference
         );
         Ok(())
+    }
+
+    async fn get_position(&self, deal_id: &str) -> Result<SinglePositionResponse, AppError> {
+        let path = format!("positions/{}", deal_id);
+        info!("Getting position: {}", deal_id);
+        let result: SinglePositionResponse = self.http_client.get(&path, Some(2)).await?;
+        debug!("Position obtained for deal: {}", deal_id);
+        Ok(result)
+    }
+
+    async fn update_working_order(
+        &self,
+        deal_id: &str,
+        update: &UpdateWorkingOrderRequest,
+    ) -> Result<CreateWorkingOrderResponse, AppError> {
+        let path = format!("workingorders/otc/{}", deal_id);
+        info!("Updating working order: {}", deal_id);
+        let result: CreateWorkingOrderResponse =
+            self.http_client.put(&path, update, Some(2)).await?;
+        debug!(
+            "Working order updated: {} with reference: {}",
+            deal_id, result.deal_reference
+        );
+        Ok(result)
+    }
+}
+
+// ============================================================================
+// WATCHLIST SERVICE IMPLEMENTATION
+// ============================================================================
+
+#[async_trait]
+impl WatchlistService for Client {
+    async fn get_watchlists(&self) -> Result<WatchlistsResponse, AppError> {
+        info!("Getting all watchlists");
+        let result: WatchlistsResponse = self.http_client.get("watchlists", Some(1)).await?;
+        debug!(
+            "Watchlists obtained: {} watchlists",
+            result.watchlists.len()
+        );
+        Ok(result)
+    }
+
+    async fn create_watchlist(
+        &self,
+        name: &str,
+        epics: Option<&[String]>,
+    ) -> Result<CreateWatchlistResponse, AppError> {
+        info!("Creating watchlist: {}", name);
+        let request = CreateWatchlistRequest {
+            name: name.to_string(),
+            epics: epics.map(|e| e.to_vec()),
+        };
+        let result: CreateWatchlistResponse = self
+            .http_client
+            .post("watchlists", &request, Some(1))
+            .await?;
+        debug!(
+            "Watchlist created: {} with ID: {}",
+            name, result.watchlist_id
+        );
+        Ok(result)
+    }
+
+    async fn get_watchlist(
+        &self,
+        watchlist_id: &str,
+    ) -> Result<WatchlistMarketsResponse, AppError> {
+        let path = format!("watchlists/{}", watchlist_id);
+        info!("Getting watchlist: {}", watchlist_id);
+        let result: WatchlistMarketsResponse = self.http_client.get(&path, Some(1)).await?;
+        debug!(
+            "Watchlist obtained: {} with {} markets",
+            watchlist_id,
+            result.markets.len()
+        );
+        Ok(result)
+    }
+
+    async fn delete_watchlist(&self, watchlist_id: &str) -> Result<StatusResponse, AppError> {
+        let path = format!("watchlists/{}", watchlist_id);
+        info!("Deleting watchlist: {}", watchlist_id);
+        let result: StatusResponse = self.http_client.delete(&path, Some(1)).await?;
+        debug!("Watchlist deleted: {}", watchlist_id);
+        Ok(result)
+    }
+
+    async fn add_to_watchlist(
+        &self,
+        watchlist_id: &str,
+        epic: &str,
+    ) -> Result<StatusResponse, AppError> {
+        let path = format!("watchlists/{}", watchlist_id);
+        info!("Adding {} to watchlist: {}", epic, watchlist_id);
+        let request = AddToWatchlistRequest {
+            epic: epic.to_string(),
+        };
+        let result: StatusResponse = self.http_client.put(&path, &request, Some(1)).await?;
+        debug!("Added {} to watchlist: {}", epic, watchlist_id);
+        Ok(result)
+    }
+
+    async fn remove_from_watchlist(
+        &self,
+        watchlist_id: &str,
+        epic: &str,
+    ) -> Result<StatusResponse, AppError> {
+        let path = format!("watchlists/{}/{}", watchlist_id, epic);
+        info!("Removing {} from watchlist: {}", epic, watchlist_id);
+        let result: StatusResponse = self.http_client.delete(&path, Some(1)).await?;
+        debug!("Removed {} from watchlist: {}", epic, watchlist_id);
+        Ok(result)
+    }
+}
+
+// ============================================================================
+// SENTIMENT SERVICE IMPLEMENTATION
+// ============================================================================
+
+#[async_trait]
+impl SentimentService for Client {
+    async fn get_client_sentiment(
+        &self,
+        market_ids: &[String],
+    ) -> Result<ClientSentimentResponse, AppError> {
+        let market_ids_str = market_ids.join(",");
+        let path = format!("clientsentiment?marketIds={}", market_ids_str);
+        info!("Getting client sentiment for {} markets", market_ids.len());
+        let result: ClientSentimentResponse = self.http_client.get(&path, Some(1)).await?;
+        debug!(
+            "Client sentiment obtained for {} markets",
+            result.client_sentiments.len()
+        );
+        Ok(result)
+    }
+
+    async fn get_client_sentiment_by_market(
+        &self,
+        market_id: &str,
+    ) -> Result<MarketSentiment, AppError> {
+        let path = format!("clientsentiment/{}", market_id);
+        info!("Getting client sentiment for market: {}", market_id);
+        let result: MarketSentiment = self.http_client.get(&path, Some(1)).await?;
+        debug!(
+            "Client sentiment for {}: {}% long, {}% short",
+            market_id, result.long_position_percentage, result.short_position_percentage
+        );
+        Ok(result)
+    }
+
+    async fn get_related_sentiment(
+        &self,
+        market_id: &str,
+    ) -> Result<ClientSentimentResponse, AppError> {
+        let path = format!("clientsentiment/related/{}", market_id);
+        info!("Getting related sentiment for market: {}", market_id);
+        let result: ClientSentimentResponse = self.http_client.get(&path, Some(1)).await?;
+        debug!(
+            "Related sentiment obtained: {} markets",
+            result.client_sentiments.len()
+        );
+        Ok(result)
+    }
+}
+
+// ============================================================================
+// COSTS SERVICE IMPLEMENTATION
+// ============================================================================
+
+#[async_trait]
+impl CostsService for Client {
+    async fn get_indicative_costs_open(
+        &self,
+        request: &OpenCostsRequest,
+    ) -> Result<IndicativeCostsResponse, AppError> {
+        info!(
+            "Getting indicative costs for opening position on: {}",
+            request.epic
+        );
+        let result: IndicativeCostsResponse = self
+            .http_client
+            .post("indicativecostsandcharges/open", request, Some(1))
+            .await?;
+        debug!(
+            "Indicative costs obtained, reference: {}",
+            result.indicative_quote_reference
+        );
+        Ok(result)
+    }
+
+    async fn get_indicative_costs_close(
+        &self,
+        request: &CloseCostsRequest,
+    ) -> Result<IndicativeCostsResponse, AppError> {
+        info!(
+            "Getting indicative costs for closing position: {}",
+            request.deal_id
+        );
+        let result: IndicativeCostsResponse = self
+            .http_client
+            .post("indicativecostsandcharges/close", request, Some(1))
+            .await?;
+        debug!(
+            "Indicative costs obtained, reference: {}",
+            result.indicative_quote_reference
+        );
+        Ok(result)
+    }
+
+    async fn get_indicative_costs_edit(
+        &self,
+        request: &EditCostsRequest,
+    ) -> Result<IndicativeCostsResponse, AppError> {
+        info!(
+            "Getting indicative costs for editing position: {}",
+            request.deal_id
+        );
+        let result: IndicativeCostsResponse = self
+            .http_client
+            .post("indicativecostsandcharges/edit", request, Some(1))
+            .await?;
+        debug!(
+            "Indicative costs obtained, reference: {}",
+            result.indicative_quote_reference
+        );
+        Ok(result)
+    }
+
+    async fn get_costs_history(
+        &self,
+        from: &str,
+        to: &str,
+    ) -> Result<CostsHistoryResponse, AppError> {
+        let path = format!("indicativecostsandcharges/history/from/{}/to/{}", from, to);
+        info!("Getting costs history from {} to {}", from, to);
+        let result: CostsHistoryResponse = self.http_client.get(&path, Some(1)).await?;
+        debug!("Costs history obtained: {} entries", result.costs.len());
+        Ok(result)
+    }
+
+    async fn get_durable_medium(
+        &self,
+        quote_reference: &str,
+    ) -> Result<DurableMediumResponse, AppError> {
+        let path = format!(
+            "indicativecostsandcharges/durablemedium/{}",
+            quote_reference
+        );
+        info!("Getting durable medium for reference: {}", quote_reference);
+        let result: DurableMediumResponse = self.http_client.get(&path, Some(1)).await?;
+        debug!("Durable medium obtained for reference: {}", quote_reference);
+        Ok(result)
+    }
+}
+
+// ============================================================================
+// OPERATIONS SERVICE IMPLEMENTATION
+// ============================================================================
+
+#[async_trait]
+impl OperationsService for Client {
+    async fn get_client_apps(&self) -> Result<ApplicationDetailsResponse, AppError> {
+        info!("Getting client applications");
+        let result: ApplicationDetailsResponse = self
+            .http_client
+            .get("operations/application", Some(1))
+            .await?;
+        debug!("Client application obtained: {}", result.api_key);
+        Ok(result)
+    }
+
+    async fn disable_client_app(&self) -> Result<StatusResponse, AppError> {
+        info!("Disabling current client application");
+        let result: StatusResponse = self
+            .http_client
+            .put(
+                "operations/application/disable",
+                &serde_json::json!({}),
+                Some(1),
+            )
+            .await?;
+        debug!("Client application disabled");
+        Ok(result)
     }
 }
 

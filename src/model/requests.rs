@@ -928,3 +928,249 @@ impl CreateWorkingOrderRequest {
         self
     }
 }
+
+// ============================================================================
+// WATCHLIST REQUESTS
+// ============================================================================
+
+/// Request to create a new watchlist
+#[derive(DebugPretty, DisplaySimple, Clone, Serialize, Deserialize, Default)]
+pub struct CreateWatchlistRequest {
+    /// Name for the new watchlist
+    pub name: String,
+    /// Optional list of EPICs to add to the watchlist
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub epics: Option<Vec<String>>,
+}
+
+impl CreateWatchlistRequest {
+    /// Create a new watchlist request with just a name
+    #[must_use]
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            epics: None,
+        }
+    }
+
+    /// Create a watchlist request with name and epics
+    #[must_use]
+    pub fn with_epics(name: &str, epics: Vec<String>) -> Self {
+        Self {
+            name: name.to_string(),
+            epics: Some(epics),
+        }
+    }
+}
+
+/// Request to add an instrument to a watchlist
+#[derive(DebugPretty, DisplaySimple, Clone, Serialize, Deserialize, Default)]
+pub struct AddToWatchlistRequest {
+    /// EPIC of the instrument to add
+    pub epic: String,
+}
+
+// ============================================================================
+// WORKING ORDER UPDATE REQUEST
+// ============================================================================
+
+/// Request to update an existing working order
+#[derive(DebugPretty, DisplaySimple, Clone, Serialize, Deserialize, Default)]
+pub struct UpdateWorkingOrderRequest {
+    /// Good till date for the order (format: yyyy/MM/dd HH:mm:ss)
+    #[serde(rename = "goodTillDate", skip_serializing_if = "Option::is_none")]
+    pub good_till_date: Option<String>,
+    /// Order level
+    pub level: f64,
+    /// Distance from current price to limit level
+    #[serde(rename = "limitDistance", skip_serializing_if = "Option::is_none")]
+    pub limit_distance: Option<f64>,
+    /// Limit level
+    #[serde(rename = "limitLevel", skip_serializing_if = "Option::is_none")]
+    pub limit_level: Option<f64>,
+    /// Distance from current price to stop level
+    #[serde(rename = "stopDistance", skip_serializing_if = "Option::is_none")]
+    pub stop_distance: Option<f64>,
+    /// Stop level
+    #[serde(rename = "stopLevel", skip_serializing_if = "Option::is_none")]
+    pub stop_level: Option<f64>,
+    /// Whether the stop is guaranteed
+    #[serde(rename = "guaranteedStop")]
+    pub guaranteed_stop: bool,
+    /// Time in force
+    #[serde(rename = "timeInForce")]
+    pub time_in_force: TimeInForce,
+    /// Order type (LIMIT or STOP)
+    #[serde(rename = "type")]
+    pub order_type: OrderType,
+}
+
+impl UpdateWorkingOrderRequest {
+    /// Create a new update working order request
+    #[must_use]
+    pub fn new(level: f64, order_type: OrderType, time_in_force: TimeInForce) -> Self {
+        Self {
+            level,
+            order_type,
+            time_in_force,
+            guaranteed_stop: false,
+            good_till_date: None,
+            limit_distance: None,
+            limit_level: None,
+            stop_distance: None,
+            stop_level: None,
+        }
+    }
+
+    /// Set the stop level
+    #[must_use]
+    pub fn with_stop_level(mut self, stop_level: f64) -> Self {
+        self.stop_level = Some(stop_level);
+        self
+    }
+
+    /// Set the limit level
+    #[must_use]
+    pub fn with_limit_level(mut self, limit_level: f64) -> Self {
+        self.limit_level = Some(limit_level);
+        self
+    }
+
+    /// Set guaranteed stop
+    #[must_use]
+    pub fn with_guaranteed_stop(mut self, guaranteed: bool) -> Self {
+        self.guaranteed_stop = guaranteed;
+        self
+    }
+}
+
+// ============================================================================
+// INDICATIVE COSTS REQUESTS
+// ============================================================================
+
+/// Request for indicative costs when opening a position
+#[derive(DebugPretty, DisplaySimple, Clone, Serialize, Deserialize, Default)]
+pub struct OpenCostsRequest {
+    /// Instrument epic
+    pub epic: String,
+    /// Trade direction (BUY or SELL)
+    pub direction: Direction,
+    /// Trade size
+    pub size: f64,
+    /// Order type
+    #[serde(rename = "orderType")]
+    pub order_type: OrderType,
+    /// Currency code
+    #[serde(rename = "currencyCode")]
+    pub currency_code: String,
+    /// Whether the stop is guaranteed
+    #[serde(rename = "guaranteedStop", skip_serializing_if = "Option::is_none")]
+    pub guaranteed_stop: Option<bool>,
+    /// Stop distance
+    #[serde(rename = "stopDistance", skip_serializing_if = "Option::is_none")]
+    pub stop_distance: Option<f64>,
+    /// Limit distance
+    #[serde(rename = "limitDistance", skip_serializing_if = "Option::is_none")]
+    pub limit_distance: Option<f64>,
+}
+
+impl OpenCostsRequest {
+    /// Create a new open costs request
+    #[must_use]
+    pub fn new(epic: &str, direction: Direction, size: f64, currency_code: &str) -> Self {
+        Self {
+            epic: epic.to_string(),
+            direction,
+            size,
+            order_type: OrderType::Market,
+            currency_code: currency_code.to_string(),
+            guaranteed_stop: None,
+            stop_distance: None,
+            limit_distance: None,
+        }
+    }
+}
+
+/// Request for indicative costs when closing a position
+#[derive(DebugPretty, DisplaySimple, Clone, Serialize, Deserialize, Default)]
+pub struct CloseCostsRequest {
+    /// Deal ID of the position to close
+    #[serde(rename = "dealId")]
+    pub deal_id: String,
+    /// Trade direction (opposite of the position direction)
+    pub direction: Direction,
+    /// Size to close
+    pub size: f64,
+    /// Order type
+    #[serde(rename = "orderType")]
+    pub order_type: OrderType,
+}
+
+impl CloseCostsRequest {
+    /// Create a new close costs request
+    #[must_use]
+    pub fn new(deal_id: &str, direction: Direction, size: f64) -> Self {
+        Self {
+            deal_id: deal_id.to_string(),
+            direction,
+            size,
+            order_type: OrderType::Market,
+        }
+    }
+}
+
+/// Request for indicative costs when editing a position
+#[derive(DebugPretty, DisplaySimple, Clone, Serialize, Deserialize, Default)]
+pub struct EditCostsRequest {
+    /// Deal ID of the position to edit
+    #[serde(rename = "dealId")]
+    pub deal_id: String,
+    /// New stop level
+    #[serde(rename = "stopLevel", skip_serializing_if = "Option::is_none")]
+    pub stop_level: Option<f64>,
+    /// New limit level
+    #[serde(rename = "limitLevel", skip_serializing_if = "Option::is_none")]
+    pub limit_level: Option<f64>,
+    /// Whether the stop is guaranteed
+    #[serde(rename = "guaranteedStop", skip_serializing_if = "Option::is_none")]
+    pub guaranteed_stop: Option<bool>,
+}
+
+impl EditCostsRequest {
+    /// Create a new edit costs request
+    #[must_use]
+    pub fn new(deal_id: &str) -> Self {
+        Self {
+            deal_id: deal_id.to_string(),
+            stop_level: None,
+            limit_level: None,
+            guaranteed_stop: None,
+        }
+    }
+
+    /// Set the new stop level
+    #[must_use]
+    pub fn with_stop_level(mut self, stop_level: f64) -> Self {
+        self.stop_level = Some(stop_level);
+        self
+    }
+
+    /// Set the new limit level
+    #[must_use]
+    pub fn with_limit_level(mut self, limit_level: f64) -> Self {
+        self.limit_level = Some(limit_level);
+        self
+    }
+}
+
+// ============================================================================
+// ACCOUNT PREFERENCES REQUEST
+// ============================================================================
+
+/// Request to update account preferences
+#[derive(DebugPretty, DisplaySimple, Clone, Serialize, Deserialize, Default)]
+pub struct UpdatePreferencesRequest {
+    /// Whether trailing stops should be enabled
+    #[serde(rename = "trailingStopsEnabled")]
+    pub trailing_stops_enabled: bool,
+}

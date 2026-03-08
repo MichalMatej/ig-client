@@ -1,4 +1,5 @@
 use crate::error::AppError;
+use crate::model::responses::AccountPreferencesResponse;
 use crate::prelude::{
     AccountActivityResponse, AccountsResponse, PositionsResponse, TransactionHistoryResponse,
     WorkingOrdersResponse,
@@ -57,4 +58,34 @@ pub trait AccountService: Send + Sync {
         from: &str,
         to: &str,
     ) -> Result<TransactionHistoryResponse, AppError>;
+
+    /// Gets account preferences
+    ///
+    /// # Returns
+    /// * `Ok(AccountPreferencesResponse)` - The account preferences
+    /// * `Err(AppError)` - If the request fails
+    async fn get_preferences(&self) -> Result<AccountPreferencesResponse, AppError>;
+
+    /// Updates account preferences
+    ///
+    /// # Arguments
+    /// * `trailing_stops_enabled` - Whether trailing stops should be enabled
+    ///
+    /// # Returns
+    /// * `Ok(())` - If the update was successful
+    /// * `Err(AppError)` - If the request fails
+    async fn update_preferences(&self, trailing_stops_enabled: bool) -> Result<(), AppError>;
+
+    /// Gets account activity for a specified period
+    ///
+    /// # Arguments
+    /// * `period` - Period in milliseconds (e.g., 600000 for 10 minutes)
+    ///
+    /// # Returns
+    /// * `Ok(AccountActivityResponse)` - Account activity for the period
+    /// * `Err(AppError)` - If the request fails
+    async fn get_activity_by_period(
+        &self,
+        period_ms: u64,
+    ) -> Result<AccountActivityResponse, AppError>;
 }

@@ -216,7 +216,6 @@ pub async fn store_historical_prices(
 /// # Errors
 ///
 /// Returns `AppError::Generic` if the timestamp cannot be parsed with any supported format.
-#[must_use = "this returns the parsed datetime, it doesn't modify anything"]
 pub fn parse_snapshot_time(snapshot_time: &str) -> Result<DateTime<Utc>, AppError> {
     // IG format: "yyyy/MM/dd hh:mm:ss" or "yyyy-MM-dd hh:mm:ss"
     let formats = [

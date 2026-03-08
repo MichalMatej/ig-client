@@ -33,7 +33,7 @@ use crate::prelude::{
 use crate::presentation::market::{MarketData, MarketDetails};
 use crate::presentation::price::PriceData;
 use async_trait::async_trait;
-use lightstreamer_rs::client::{LightstreamerClient, Transport};
+use lightstreamer_rs::client::{LightstreamerClient, LogType, Transport};
 use lightstreamer_rs::subscription::{
     ChannelSubscriptionListener, Snapshot, Subscription, SubscriptionMode,
 };
@@ -763,17 +763,20 @@ impl StreamerClient {
         )?));
 
         // Force WebSocket streaming transport on both clients to satisfy IG requirements
+        // and configure logging to use tracing levels for proper log propagation
         {
             let mut client = market_streamer_client.lock().await;
             client
                 .connection_options
                 .set_forced_transport(Some(Transport::WsStreaming));
+            client.set_logging_type(LogType::TracingLogs);
         }
         {
             let mut client = price_streamer_client.lock().await;
             client
                 .connection_options
                 .set_forced_transport(Some(Transport::WsStreaming));
+            client.set_logging_type(LogType::TracingLogs);
         }
 
         Ok(Self {

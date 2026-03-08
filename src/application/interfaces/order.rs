@@ -1,10 +1,11 @@
 use crate::error::AppError;
 use crate::model::requests::{
     ClosePositionRequest, CreateOrderRequest, CreateWorkingOrderRequest, UpdatePositionRequest,
+    UpdateWorkingOrderRequest,
 };
 use crate::model::responses::{
     ClosePositionResponse, CreateOrderResponse, CreateWorkingOrderResponse,
-    OrderConfirmationResponse, UpdatePositionResponse,
+    OrderConfirmationResponse, SinglePositionResponse, UpdatePositionResponse,
 };
 
 use async_trait::async_trait;
@@ -103,4 +104,29 @@ pub trait OrderService: Send + Sync {
     /// - If the calling user does not have permission to delete the specified working order.
     ///
     async fn delete_working_order(&self, deal_id: &str) -> Result<(), AppError>;
+
+    /// Gets a single position by deal ID
+    ///
+    /// # Arguments
+    /// * `deal_id` - The deal ID of the position to retrieve
+    ///
+    /// # Returns
+    /// * `Ok(SinglePositionResponse)` - The position details and market data
+    /// * `Err(AppError)` - If the request fails
+    async fn get_position(&self, deal_id: &str) -> Result<SinglePositionResponse, AppError>;
+
+    /// Updates an existing working order
+    ///
+    /// # Arguments
+    /// * `deal_id` - The deal ID of the working order to update
+    /// * `update` - The update parameters
+    ///
+    /// # Returns
+    /// * `Ok(CreateWorkingOrderResponse)` - The updated working order confirmation
+    /// * `Err(AppError)` - If the request fails
+    async fn update_working_order(
+        &self,
+        deal_id: &str,
+        update: &UpdateWorkingOrderRequest,
+    ) -> Result<CreateWorkingOrderResponse, AppError>;
 }

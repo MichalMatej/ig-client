@@ -799,6 +799,240 @@ impl std::fmt::Display for MarketSearchResponse {
     }
 }
 
+// ============================================================================
+// WATCHLIST RESPONSES
+// ============================================================================
+
+/// Response containing all watchlists for the active account
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct WatchlistsResponse {
+    /// List of watchlists
+    pub watchlists: Vec<Watchlist>,
+}
+
+/// A watchlist containing instruments
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct Watchlist {
+    /// Watchlist identifier
+    pub id: String,
+    /// Watchlist name
+    pub name: String,
+    /// Whether the watchlist can be edited
+    pub editable: bool,
+    /// Whether the watchlist can be deleted
+    pub deleteable: bool,
+    /// Whether this is a default system watchlist
+    #[serde(rename = "defaultSystemWatchlist")]
+    pub default_system_watchlist: bool,
+}
+
+/// Response when creating a new watchlist
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct CreateWatchlistResponse {
+    /// The ID of the created watchlist
+    #[serde(rename = "watchlistId")]
+    pub watchlist_id: String,
+    /// Status of the operation
+    pub status: String,
+}
+
+/// Response containing markets in a watchlist
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct WatchlistMarketsResponse {
+    /// List of markets in the watchlist
+    pub markets: Vec<MarketData>,
+}
+
+/// Generic status response for operations
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct StatusResponse {
+    /// Status of the operation (e.g., "SUCCESS")
+    pub status: String,
+}
+
+// ============================================================================
+// CLIENT SENTIMENT RESPONSES
+// ============================================================================
+
+/// Response containing client sentiment for multiple markets
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct ClientSentimentResponse {
+    /// List of client sentiments
+    #[serde(rename = "clientSentiments")]
+    pub client_sentiments: Vec<MarketSentiment>,
+}
+
+/// Client sentiment data for a single market
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct MarketSentiment {
+    /// Market identifier
+    #[serde(rename = "marketId")]
+    pub market_id: String,
+    /// Percentage of clients with long positions
+    #[serde(rename = "longPositionPercentage")]
+    pub long_position_percentage: f64,
+    /// Percentage of clients with short positions
+    #[serde(rename = "shortPositionPercentage")]
+    pub short_position_percentage: f64,
+}
+
+// ============================================================================
+// INDICATIVE COSTS RESPONSES
+// ============================================================================
+
+/// Response containing indicative costs and charges
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct IndicativeCostsResponse {
+    /// Reference for the indicative quote
+    #[serde(rename = "indicativeQuoteReference")]
+    pub indicative_quote_reference: String,
+    /// Costs and charges breakdown
+    #[serde(rename = "costsAndCharges")]
+    pub costs_and_charges: CostsAndCharges,
+}
+
+/// Breakdown of costs and charges
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct CostsAndCharges {
+    /// Total cost percentage
+    #[serde(rename = "totalCostPercentage")]
+    pub total_cost_percentage: Option<f64>,
+    /// Total cost amount
+    #[serde(rename = "totalCostAmount")]
+    pub total_cost_amount: Option<f64>,
+    /// Currency
+    pub currency: Option<String>,
+    /// One-off costs
+    #[serde(rename = "oneOffCosts")]
+    pub one_off_costs: Option<CostBreakdown>,
+    /// Ongoing costs
+    #[serde(rename = "ongoingCosts")]
+    pub ongoing_costs: Option<CostBreakdown>,
+    /// Transaction costs
+    #[serde(rename = "transactionCosts")]
+    pub transaction_costs: Option<CostBreakdown>,
+    /// Incidental costs
+    #[serde(rename = "incidentalCosts")]
+    pub incidental_costs: Option<CostBreakdown>,
+}
+
+/// Breakdown of a specific cost category
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct CostBreakdown {
+    /// Percentage value
+    pub percentage: Option<f64>,
+    /// Monetary amount
+    pub amount: Option<f64>,
+}
+
+/// Response containing historical costs
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct CostsHistoryResponse {
+    /// List of historical costs
+    pub costs: Vec<HistoricalCost>,
+}
+
+/// Historical cost entry
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct HistoricalCost {
+    /// Date of the cost
+    pub date: String,
+    /// Deal reference
+    #[serde(rename = "dealReference")]
+    pub deal_reference: Option<String>,
+    /// Epic of the instrument
+    pub epic: Option<String>,
+    /// Total cost amount
+    #[serde(rename = "totalCost")]
+    pub total_cost: Option<f64>,
+    /// Currency
+    pub currency: Option<String>,
+}
+
+/// Response containing a durable medium document
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct DurableMediumResponse {
+    /// The durable medium document content (typically HTML or PDF)
+    pub document: String,
+}
+
+// ============================================================================
+// ACCOUNT PREFERENCES RESPONSES
+// ============================================================================
+
+/// Response containing account preferences
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct AccountPreferencesResponse {
+    /// Whether trailing stops are enabled
+    #[serde(rename = "trailingStopsEnabled")]
+    pub trailing_stops_enabled: bool,
+}
+
+// ============================================================================
+// OPERATIONS/APPLICATION RESPONSES
+// ============================================================================
+
+/// Response containing application details (a single application)
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct ApplicationDetailsResponse {
+    /// API key
+    #[serde(rename = "apiKey")]
+    pub api_key: String,
+    /// Application name
+    pub name: Option<String>,
+    /// Application status
+    pub status: String,
+    /// Overall allowance for the account
+    #[serde(rename = "allowanceAccountOverall")]
+    pub allowance_account_overall: Option<i32>,
+    /// Trading allowance for the account
+    #[serde(rename = "allowanceAccountTrading")]
+    pub allowance_account_trading: Option<i32>,
+    /// Concurrent connections allowance
+    #[serde(rename = "concurrentSubscriptionsLimit")]
+    pub concurrent_subscriptions_limit: Option<i32>,
+    /// Creation date
+    #[serde(rename = "createdDate")]
+    pub created_date: Option<String>,
+}
+
+/// Information about an API application
+#[derive(DebugPretty, Clone, Serialize, Deserialize, Default)]
+pub struct ApplicationInfo {
+    /// API key
+    #[serde(rename = "apiKey")]
+    pub api_key: String,
+    /// Application name
+    pub name: Option<String>,
+    /// Application status
+    pub status: String,
+    /// Overall allowance for the account
+    #[serde(rename = "allowanceAccountOverall")]
+    pub allowance_account_overall: Option<i32>,
+    /// Trading allowance for the account
+    #[serde(rename = "allowanceAccountTrading")]
+    pub allowance_account_trading: Option<i32>,
+    /// Concurrent connections allowance
+    #[serde(rename = "concurrentSubscriptionsLimit")]
+    pub concurrent_subscriptions_limit: Option<i32>,
+    /// Creation date
+    #[serde(rename = "createdDate")]
+    pub created_date: Option<String>,
+}
+
+// ============================================================================
+// SINGLE POSITION RESPONSE
+// ============================================================================
+
+/// Response containing a single position
+#[derive(DebugPretty, Clone, Serialize, Deserialize)]
+pub struct SinglePositionResponse {
+    /// Position details
+    pub position: Position,
+    /// Market data for the position
+    pub market: MarketData,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

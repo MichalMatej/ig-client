@@ -9,10 +9,13 @@
 //! ## Features
 //!
 //! - **Authentication**: Secure authentication with the IG Markets API including session refresh and account switching
-//! - **Account Management**: Access account information, balances, and activity history
+//! - **Account Management**: Access account information, balances, preferences, and activity history
 //! - **Market Data**: Retrieve market data, prices, instrument details, and historical prices
 //! - **Order Management**: Create, modify, and close positions and orders with various order types
-//! - **Working Orders**: Create and manage working orders with support for limit and stop orders
+//! - **Working Orders**: Create, update, and manage working orders with support for limit and stop orders
+//! - **Watchlists**: Full CRUD operations for watchlists including adding/removing instruments
+//! - **Client Sentiment**: Access client sentiment data for single or multiple markets
+//! - **Indicative Costs**: Retrieve indicative costs and charges for opening, closing, or editing positions
 //! - **Transaction History**: Access detailed transaction and activity history
 //! - **WebSocket Support**: Real-time market data streaming via WebSocket connections
 //! - **Advanced Rate Limiting**: Sophisticated rate limiting with automatic backoff, concurrent request management, and explicit rate limit error handling
@@ -330,6 +333,64 @@
 //! }
 //! ```
 //!
+//! ## Available Services
+//!
+//! The library provides the following service traits for interacting with the IG Markets API:
+//!
+//! ### AccountService
+//! - `get_accounts()` - Get all accounts for the authenticated user
+//! - `get_positions()` - Get all open positions
+//! - `get_working_orders()` - Get all working orders
+//! - `get_activity(from, to)` - Get account activity for a date range
+//! - `get_activity_by_period(period_ms)` - Get activity for a period in milliseconds
+//! - `get_transactions(from, to)` - Get transaction history
+//! - `get_preferences()` - Get account preferences
+//! - `update_preferences(trailing_stops_enabled)` - Update account preferences
+//!
+//! ### MarketService
+//! - `search_markets(term)` - Search for markets by keyword
+//! - `get_market_details(epic)` - Get detailed market information
+//! - `get_multiple_market_details(epics)` - Get details for multiple markets
+//! - `get_historical_prices(epic, resolution, num_points)` - Get historical price data
+//! - `get_historical_prices_by_date_range(epic, resolution, start, end)` - Get prices for date range
+//! - `get_market_navigation()` - Get market navigation hierarchy
+//! - `get_categories()` - Get market categories
+//! - `get_instruments_by_category(category)` - Get instruments in a category
+//!
+//! ### OrderService
+//! - `create_order(request)` - Create a new market order
+//! - `get_order_confirmation(deal_reference)` - Get order confirmation
+//! - `update_position(deal_id, update)` - Update an existing position
+//! - `close_position(request)` - Close a position
+//! - `get_position(deal_id)` - Get a single position by deal ID
+//! - `create_working_order(request)` - Create a working order
+//! - `update_working_order(deal_id, update)` - Update an existing working order
+//! - `delete_working_order(deal_id)` - Delete a working order
+//!
+//! ### WatchlistService (New in 0.11.0)
+//! - `get_watchlists()` - Get all watchlists
+//! - `create_watchlist(name, epics)` - Create a new watchlist
+//! - `get_watchlist(id)` - Get watchlist markets
+//! - `delete_watchlist(id)` - Delete a watchlist
+//! - `add_to_watchlist(id, epic)` - Add instrument to watchlist
+//! - `remove_from_watchlist(id, epic)` - Remove instrument from watchlist
+//!
+//! ### SentimentService (New in 0.11.0)
+//! - `get_client_sentiment(market_ids)` - Get sentiment for multiple markets
+//! - `get_client_sentiment_by_market(market_id)` - Get sentiment for a single market
+//! - `get_related_sentiment(market_id)` - Get sentiment for related markets
+//!
+//! ### CostsService (New in 0.11.0)
+//! - `get_indicative_costs_open(request)` - Get costs for opening a position
+//! - `get_indicative_costs_close(request)` - Get costs for closing a position
+//! - `get_indicative_costs_edit(request)` - Get costs for editing a position
+//! - `get_costs_history(from, to)` - Get historical costs
+//! - `get_durable_medium(quote_reference)` - Get durable medium document
+//!
+//! ### OperationsService (New in 0.11.0)
+//! - `get_client_apps()` - Get API application details
+//! - `disable_client_app()` - Disable current API key
+//!
 //! ## Documentation
 //!
 //! Comprehensive documentation is available for all components of the library. The documentation includes detailed explanations of all modules, structs, and functions, along with examples of how to use them.
@@ -445,42 +506,42 @@
 //! ```text
 //! ├── src/
 //! │   ├── application/       # Core business logic
-//! │   │   ├── models/        # Data models
-//! │   │   │   ├── account.rs # Account-related models
-//! │   │   │   ├── market.rs  # Market data models
-//! │   │   │   ├── order.rs   # Order models
-//! │   │   │   ├── transaction.rs # Transaction models
-//! │   │   │   └── working_order.rs # Working order models
-//! │   │   └── services/      # Service implementations
-//! │   │       ├── account_service.rs
-//! │   │       ├── interfaces/ # Service interfaces
-//! │   │       ├── listener.rs # Price listener service
-//! │   │       ├── market_service.rs
-//! │   │       └── order_service.rs
-//! │   ├── config.rs          # Configuration handling
-//! │   ├── constants.rs       # Global constants
-//! │   ├── error.rs           # Error types
+//! │   │   ├── interfaces/    # Service trait interfaces
+//! │   │   │   ├── account.rs # Account service trait
+//! │   │   │   ├── costs.rs   # Costs service trait (v0.11.0)
+//! │   │   │   ├── market.rs  # Market service trait
+//! │   │   │   ├── operations.rs # Operations service trait (v0.11.0)
+//! │   │   │   ├── order.rs   # Order service trait
+//! │   │   │   ├── sentiment.rs # Sentiment service trait (v0.11.0)
+//! │   │   │   └── watchlist.rs # Watchlist service trait (v0.11.0)
+//! │   │   ├── auth.rs        # Authentication handler
+//! │   │   ├── client.rs      # Main API client
+//! │   │   └── config.rs      # Configuration handling
+//! │   ├── model/             # Data models
+//! │   │   ├── requests.rs    # API request models
+//! │   │   ├── responses.rs   # API response models
+//! │   │   └── streaming.rs   # Streaming data models
 //! │   ├── presentation/      # Presentation layer
 //! │   │   ├── account.rs     # Account presentation
 //! │   │   ├── market.rs      # Market presentation
-//! │   │   ├── serialization.rs # Serialization utilities
-//! │   │   └── trade.rs       # Trade presentation
-//! │   ├── session/           # Authentication and session
-//! │   │   ├── auth.rs        # Authentication handler
-//! │   │   └── interface.rs   # Session interface
+//! │   │   └── order.rs       # Order presentation
 //! │   ├── storage/           # Data persistence
-//! │   │   ├── config.rs      # Database configuration
-//! │   │   └── utils.rs       # Storage utilities
-//! │   ├── transport/         # API communication
-//! │   │   └── http_client.rs # HTTP client
+//! │   │   └── config.rs      # Database configuration
+//! │   ├── constants.rs       # Global constants
+//! │   ├── error.rs           # Error types
 //! │   └── utils/             # Utility functions
-//! │       ├── display.rs     # Display utilities
-//! │       ├── finance.rs     # Financial calculations
-//! │       ├── logger.rs      # Logging utilities
-//! │       ├── market_parser.rs # Market data parsing utilities
 //! │       ├── parsing.rs     # Parsing utilities
-//! │       └── rate_limiter.rs # Advanced rate limiting with concurrency management
+//! │       └── retry.rs       # Retry utilities
 //! ├── examples/              # Example applications
+//! │   ├── chart/             # Chart examples
+//! │   ├── costs/             # Costs examples (v0.11.0)
+//! │   ├── market/            # Market examples
+//! │   ├── orders/            # Order examples
+//! │   ├── positions/         # Position examples
+//! │   ├── sentiment/         # Sentiment examples (v0.11.0)
+//! │   ├── streaming/         # Streaming examples
+//! │   ├── watchlist/         # Watchlist examples (v0.11.0)
+//! │   └── other/             # Other examples
 //! ├── tests/                 # Tests
 //! │   ├── integration/       # Integration tests
 //! │   └── unit/              # Unit tests

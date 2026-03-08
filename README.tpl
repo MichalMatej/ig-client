@@ -16,6 +16,32 @@
 
 {{readme}}
 
+## What's New in 0.11.0
+
+This release adds comprehensive API coverage with the following new services:
+
+### New Services
+- **WatchlistService** - Full CRUD operations for watchlists
+  - `get_watchlists()`, `create_watchlist()`, `get_watchlist()`, `delete_watchlist()`
+  - `add_to_watchlist()`, `remove_from_watchlist()`
+- **SentimentService** - Client sentiment data
+  - `get_client_sentiment()`, `get_client_sentiment_by_market()`, `get_related_sentiment()`
+- **CostsService** - Indicative costs and charges
+  - `get_indicative_costs_open()`, `get_indicative_costs_close()`, `get_indicative_costs_edit()`
+  - `get_costs_history()`, `get_durable_medium()`
+- **OperationsService** - API application management
+  - `get_client_apps()`, `disable_client_app()`
+
+### Extended Services
+- **AccountService** - Added `get_preferences()`, `update_preferences()`, `get_activity_by_period()`
+- **OrderService** - Added `get_position()`, `update_working_order()`
+
+### New Examples
+- `examples/watchlist/` - Watchlist management examples
+- `examples/sentiment/` - Client sentiment examples
+- `examples/costs/` - Indicative costs examples
+- Additional examples in `positions/`, `orders/`, and `other/`
+
 ## Contribution and Contact
 
 We welcome contributions to this project! If you would like to contribute, please follow these steps:

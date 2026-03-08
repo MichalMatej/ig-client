@@ -16,7 +16,6 @@
 /// cargo run --bin positions_switch_account YOUR_ACCOUNT_ID
 /// ```
 use ig_client::prelude::*;
-use std::error::Error;
 use std::sync::Arc;
 use tracing::{error, info};
 

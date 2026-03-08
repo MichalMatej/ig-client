@@ -31,10 +31,10 @@ async fn main() -> Result<(), ig_client::error::AppError> {
         // Display activities with detailed information
         for (i, activity_item) in activity.activities.iter().enumerate() {
             // Log the activity as pretty JSON
-            if let Ok(value) = serde_json::to_value(activity_item) {
-                if let Ok(pretty) = serde_json::to_string_pretty(&value) {
-                    info!("Activity #{}: {}", i + 1, pretty);
-                }
+            if let Ok(value) = serde_json::to_value(activity_item)
+                && let Ok(pretty) = serde_json::to_string_pretty(&value)
+            {
+                info!("Activity #{}: {}", i + 1, pretty);
             }
 
             info!("---"); // Separator between activities

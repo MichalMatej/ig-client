@@ -1,6 +1,5 @@
 /// Test account switching with API v2 (CST authentication)
 use ig_client::prelude::*;
-use std::error::Error;
 use std::sync::Arc;
 use tracing::{error, info};
 

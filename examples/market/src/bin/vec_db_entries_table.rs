@@ -113,7 +113,7 @@ async fn main() -> Result<(), ig_client::error::AppError> {
             error!("  - Network connectivity issues");
             error!("  - API rate limiting");
             error!("  - Account permissions");
-            return Err(e.into());
+            return Err(e);
         }
     }
 

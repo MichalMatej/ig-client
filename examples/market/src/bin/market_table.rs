@@ -26,7 +26,7 @@ async fn main() -> Result<(), ig_client::error::AppError> {
         }
         Err(e) => {
             error!("Error building complete hierarchy: {:?}", e);
-            return Err(e.into());
+            return Err(e);
         }
     };
 

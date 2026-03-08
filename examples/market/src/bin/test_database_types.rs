@@ -2,7 +2,7 @@ use ig_client::prelude::*;
 use tracing::info;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     setup_logger();
 
     // Initialize simple logging

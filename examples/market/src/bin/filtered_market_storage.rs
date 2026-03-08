@@ -1,10 +1,10 @@
 use ig_client::prelude::*;
 use std::collections::HashMap;
-use std::{error::Error, fs};
+use std::fs;
 use tracing::info;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     // Set up logging
     setup_logger();
 

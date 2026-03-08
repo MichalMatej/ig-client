@@ -65,7 +65,7 @@ async fn process_updates(mut receiver: mpsc::Receiver<ItemUpdate>) {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     setup_logger();
 
     let client = Client::default();
@@ -112,7 +112,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Add the subscription to the client
     {
         let mut ls = ls_client.lock().await;
-        LightstreamerClient::subscribe(ls.subscription_sender.clone(), subscription).await;
+        LightstreamerClient::subscribe(ls.subscription_sender.clone(), subscription).await?;
         ls.connection_options
             .set_forced_transport(Some(Transport::WsStreaming));
         info!("Trade subscription added");

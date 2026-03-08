@@ -2,7 +2,7 @@ use ig_client::prelude::*;
 use tracing::{error, info};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     setup_logger();
 
     info!("=== Activity Example ===");
@@ -19,9 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(activity) => activity,
         Err(e) => {
             error!("Failed to get activity: {}", e);
-            return Err(Box::<dyn std::error::Error>::from(format!(
-                "Failed to get activity: {e}"
-            )));
+            return Err(e);
         }
     };
 
@@ -33,12 +31,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Display activities with detailed information
         for (i, activity_item) in activity.activities.iter().enumerate() {
             // Log the activity as pretty JSON
-            info!(
-                "Activity #{}: {}",
-                i + 1,
-                serde_json::to_string_pretty(&serde_json::to_value(activity_item).unwrap())
-                    .unwrap()
-            );
+            if let Ok(value) = serde_json::to_value(activity_item)
+                && let Ok(pretty) = serde_json::to_string_pretty(&value)
+            {
+                info!("Activity #{}: {}", i + 1, pretty);
+            }
 
             info!("---"); // Separator between activities
         }

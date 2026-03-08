@@ -75,7 +75,7 @@ async fn process_updates(mut receiver: mpsc::Receiver<ItemUpdate>) {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     setup_logger();
 
     // Initialize the IG client and get WebSocket credentials
@@ -123,7 +123,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Add the subscription to the client
     {
         let mut client = client.lock().await;
-        LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await;
+        LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await?;
         client
             .connection_options
             .set_forced_transport(Some(Transport::WsStreaming));

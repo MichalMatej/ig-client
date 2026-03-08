@@ -17,7 +17,7 @@ fn callback(update: &ChartData) -> Result<(), AppError> {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     setup_logger();
 
     // Create a subscription for a market
@@ -63,7 +63,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     //
     {
         let mut client = client.lock().await;
-        LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await;
+        LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await?;
         client
             .connection_options
             .set_forced_transport(Some(Transport::WsStreaming));

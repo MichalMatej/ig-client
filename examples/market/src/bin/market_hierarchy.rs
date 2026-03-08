@@ -1,10 +1,9 @@
 use ig_client::model::utils::build_market_hierarchy;
 use ig_client::prelude::*;
-use std::error::Error;
 use tracing::{error, info};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     // Configure logger with more detail for debugging
     setup_logger();
 
@@ -54,10 +53,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
             };
 
             // Convert to JSON and save to a file
-            let json = serde_json::to_string_pretty(&hierarchy)
-                .map_err(|e| Box::new(e) as Box<dyn Error>)?;
+            let json = serde_json::to_string_pretty(&hierarchy)?;
             let filename = "Data/market_hierarchy.json";
-            std::fs::write(filename, &json).map_err(|e| Box::new(e) as Box<dyn Error>)?;
+            std::fs::write(filename, &json)?;
 
             info!("Market hierarchy saved to '{}'", filename);
             info!("Hierarchy contains {} top-level nodes", hierarchy.len());
@@ -65,19 +63,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Err(e) => {
             error!("Error in initial API test: {:?}", e);
 
-            // Get the underlying cause of the error if possible
-            let mut current_error: &dyn Error = &e;
-            while let Some(source) = current_error.source() {
-                error!("Error cause: {}", source);
-                current_error = source;
-
-                // If it's a deserialization error, provide more information
-                if source.to_string().contains("Decode") {
-                    info!("Attempting to get raw response for analysis...");
-                    error!("The API response structure does not match our model.");
-                    error!("The API may have changed or there might be an authentication issue.");
-                }
-            }
+            // Log the error details
+            error!("Error details: {}", e);
 
             // If it's a rate limit error, provide specific guidance
             if matches!(e, AppError::RateLimitExceeded | AppError::Unexpected(_)) {
@@ -88,7 +75,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 );
             }
 
-            return Err(Box::new(e) as Box<dyn Error>);
+            return Err(e);
         }
     }
 

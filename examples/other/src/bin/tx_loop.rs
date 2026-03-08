@@ -16,7 +16,7 @@ use tokio::{signal, time};
 use tracing::{debug, error, info};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     setup_logger();
 
     info!("=== Transaction Loop Service ===");
@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Err(e) => {
             error!("Failed to establish database connection: {}", e);
-            return Err(Box::<dyn std::error::Error>::from(e));
+            return Err(e.into());
         }
     };
 

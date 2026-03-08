@@ -4,7 +4,7 @@ use ig_client::utils::setup_logger;
 use tracing::info;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     // Initialize logging
     setup_logger();
 

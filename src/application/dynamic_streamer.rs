@@ -32,7 +32,7 @@ use tracing::{debug, info, warn};
 /// use std::collections::HashSet;
 ///
 /// #[tokio::main]
-/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// async fn main() -> Result<(), ig_client::error::AppError> {
 ///     // Create fields to subscribe to
 ///     let fields = HashSet::from([
 ///         StreamingMarketField::Bid,
@@ -48,7 +48,9 @@ use tracing::{debug, info, warn};
 ///     // Add markets from different threads
 ///     let streamer_clone = streamer.clone();
 ///     tokio::spawn(async move {
-///         streamer_clone.add("IX.D.DAX.DAILY.IP".to_string()).await.unwrap();
+///         if let Err(e) = streamer_clone.add("IX.D.DAX.DAILY.IP".to_string()).await {
+///             tracing::error!("Failed to add market: {}", e);
+///         }
 ///     });
 ///
 ///     // Start receiving updates

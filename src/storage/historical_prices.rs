@@ -1,3 +1,4 @@
+use crate::error::AppError;
 use crate::presentation::market::HistoricalPrice;
 use chrono::{DateTime, Utc};
 use sqlx::{PgPool, Row};
@@ -211,9 +212,11 @@ pub async fn store_historical_prices(
 }
 
 /// Parse snapshot time from IG format to `DateTime<Utc>`
-pub fn parse_snapshot_time(
-    snapshot_time: &str,
-) -> Result<DateTime<Utc>, Box<dyn std::error::Error>> {
+///
+/// # Errors
+///
+/// Returns `AppError::Generic` if the timestamp cannot be parsed with any supported format.
+pub fn parse_snapshot_time(snapshot_time: &str) -> Result<DateTime<Utc>, AppError> {
     // IG format: "yyyy/MM/dd hh:mm:ss" or "yyyy-MM-dd hh:mm:ss"
     let formats = [
         "%Y/%m/%d %H:%M:%S",
@@ -228,7 +231,10 @@ pub fn parse_snapshot_time(
         }
     }
 
-    Err(format!("Unable to parse timestamp: {}", snapshot_time).into())
+    Err(AppError::Generic(format!(
+        "Unable to parse timestamp: {}",
+        snapshot_time
+    )))
 }
 
 /// Database statistics for a specific epic

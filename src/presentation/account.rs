@@ -175,7 +175,8 @@ pub struct ActivityDetails {
 }
 
 /// Types of actions that can be performed on an activity
-#[derive(Debug, Copy, Clone, DisplaySimple, Deserialize, Serialize)]
+#[repr(u8)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, DisplaySimple, Deserialize, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ActionType {
     /// A limit order was deleted

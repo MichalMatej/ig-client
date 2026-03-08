@@ -855,7 +855,8 @@ impl StreamerClient {
             client
                 .connection_options
                 .set_forced_transport(Some(Transport::WsStreaming));
-            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await;
+            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription)
+                .await?;
         }
 
         // Create a channel for PriceData and spawn a task to convert ItemUpdate to PriceData
@@ -864,7 +865,10 @@ impl StreamerClient {
             let mut receiver = item_receiver;
             while let Some(item_update) = receiver.recv().await {
                 let price_data = PriceData::from(&item_update);
-                let _ = price_tx.send(price_data);
+                if price_tx.send(price_data).is_err() {
+                    tracing::debug!("Price channel receiver dropped");
+                    break;
+                }
             }
         });
 
@@ -931,7 +935,8 @@ impl StreamerClient {
             client
                 .connection_options
                 .set_forced_transport(Some(Transport::WsStreaming));
-            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await;
+            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription)
+                .await?;
         }
 
         // Create a channel for TradeFields and spawn a task to convert ItemUpdate to TradeFields
@@ -940,7 +945,10 @@ impl StreamerClient {
             let mut receiver = item_receiver;
             while let Some(item_update) = receiver.recv().await {
                 let trade_data = crate::presentation::trade::TradeData::from(&item_update);
-                let _ = trade_tx.send(trade_data.fields);
+                if trade_tx.send(trade_data.fields).is_err() {
+                    tracing::debug!("Trade channel receiver dropped");
+                    break;
+                }
             }
         });
 
@@ -1005,7 +1013,8 @@ impl StreamerClient {
             client
                 .connection_options
                 .set_forced_transport(Some(Transport::WsStreaming));
-            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await;
+            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription)
+                .await?;
         }
 
         // Create a channel for AccountFields and spawn a task to convert ItemUpdate to AccountFields
@@ -1014,7 +1023,10 @@ impl StreamerClient {
             let mut receiver = item_receiver;
             while let Some(item_update) = receiver.recv().await {
                 let account_data = crate::presentation::account::AccountData::from(&item_update);
-                let _ = account_tx.send(account_data.fields);
+                if account_tx.send(account_data.fields).is_err() {
+                    tracing::debug!("Account channel receiver dropped");
+                    break;
+                }
             }
         });
 
@@ -1095,7 +1107,8 @@ impl StreamerClient {
             client
                 .connection_options
                 .set_forced_transport(Some(Transport::WsStreaming));
-            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await;
+            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription)
+                .await?;
         }
 
         // Create a channel for PriceData and spawn a task to convert ItemUpdate to PriceData
@@ -1104,7 +1117,10 @@ impl StreamerClient {
             let mut receiver = item_receiver;
             while let Some(item_update) = receiver.recv().await {
                 let price_data = PriceData::from(&item_update);
-                let _ = price_tx.send(price_data);
+                if price_tx.send(price_data).is_err() {
+                    tracing::debug!("Price channel receiver dropped");
+                    break;
+                }
             }
         });
 
@@ -1190,7 +1206,8 @@ impl StreamerClient {
             client
                 .connection_options
                 .set_forced_transport(Some(Transport::WsStreaming));
-            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await;
+            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription)
+                .await?;
         }
 
         // Create a channel for ChartData and spawn a task to convert ItemUpdate to ChartData
@@ -1199,7 +1216,10 @@ impl StreamerClient {
             let mut receiver = item_receiver;
             while let Some(item_update) = receiver.recv().await {
                 let chart_data = ChartData::from(&item_update);
-                let _ = chart_tx.send(chart_data);
+                if chart_tx.send(chart_data).is_err() {
+                    tracing::debug!("Chart channel receiver dropped");
+                    break;
+                }
             }
         });
 

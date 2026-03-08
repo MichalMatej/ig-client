@@ -313,7 +313,8 @@ pub struct ExpiryDetails {
     pub settlement_info: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 /// Unit for step distances in trading rules
 pub enum StepUnit {
     #[serde(rename = "POINTS")]
@@ -361,7 +362,10 @@ pub struct MarketNode {
 }
 
 /// Represents the current state of a market
-#[derive(DebugPretty, DisplaySimple, Serialize, Deserialize, Clone, PartialEq, Default)]
+#[repr(u8)]
+#[derive(
+    DebugPretty, DisplaySimple, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash, Default,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum MarketState {
     /// Market is closed for trading
@@ -524,7 +528,10 @@ pub struct Category {
 }
 
 /// Market status for category instruments
-#[derive(DebugPretty, DisplaySimple, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[repr(u8)]
+#[derive(
+    DebugPretty, DisplaySimple, Clone, Copy, Serialize, Deserialize, Default, PartialEq, Eq, Hash,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum CategoryMarketStatus {
     /// Market is offline

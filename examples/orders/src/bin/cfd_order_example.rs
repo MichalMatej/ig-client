@@ -4,7 +4,7 @@ use nanoid::nanoid;
 use tracing::{error, info, warn};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     setup_logger();
 
     info!("=== IG CFD Order Example ===");

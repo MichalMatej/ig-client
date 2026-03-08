@@ -9,18 +9,19 @@ fn test_dealing_flag_default() {
 }
 
 #[test]
-fn test_dealing_flag_clone() {
+fn test_dealing_flag_copy() {
     let flag = DealingFlag::Deal;
-    let cloned = flag.clone();
-    assert_eq!(flag, cloned);
+    let copied = flag; // Copy trait
+    assert_eq!(flag, copied);
 }
 
 #[test]
-fn test_dealing_flag_serialization() {
+fn test_dealing_flag_serialization() -> Result<(), serde_json::Error> {
     let flag = DealingFlag::Deal;
-    let json = serde_json::to_string(&flag).unwrap();
-    let deserialized: DealingFlag = serde_json::from_str(&json).unwrap();
+    let json = serde_json::to_string(&flag)?;
+    let deserialized: DealingFlag = serde_json::from_str(&json)?;
     assert_eq!(flag, deserialized);
+    Ok(())
 }
 
 #[test]

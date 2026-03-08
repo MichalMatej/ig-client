@@ -806,47 +806,35 @@ mod tests {
     use std::fs;
 
     #[test]
-    fn test_deserialize_working_orders_from_file() {
+    fn test_deserialize_working_orders_from_file() -> Result<(), Box<dyn std::error::Error>> {
         // Load the JSON file
-        let json_content = fs::read_to_string("Data/working_orders.json")
-            .expect("Failed to read Data/working_orders.json");
+        let json_content = fs::read_to_string("Data/working_orders.json")?;
 
         // Parse as a generic JSON Value first to inspect the structure
-        let json_value: Value =
-            serde_json::from_str(&json_content).expect("Failed to parse JSON as Value");
+        let json_value: Value = serde_json::from_str(&json_content)?;
 
         println!(
             "JSON structure:\n{}",
-            serde_json::to_string_pretty(&json_value).unwrap()
+            serde_json::to_string_pretty(&json_value)?
         );
 
         // Attempt to deserialize into WorkingOrdersResponse
-        let result: Result<WorkingOrdersResponse, _> = serde_json::from_str(&json_content);
+        let response: WorkingOrdersResponse = serde_json::from_str(&json_content)?;
 
-        match result {
-            Ok(response) => {
-                println!(
-                    "Successfully deserialized {} working orders",
-                    response.working_orders.len()
-                );
-                for (idx, order) in response.working_orders.iter().enumerate() {
-                    println!(
-                        "Order {}: epic={}, direction={:?}, size={}, level={}",
-                        idx + 1,
-                        order.working_order_data.epic,
-                        order.working_order_data.direction,
-                        order.working_order_data.order_size,
-                        order.working_order_data.order_level
-                    );
-                }
-            }
-            Err(e) => {
-                panic!(
-                    "Failed to deserialize WorkingOrdersResponse: {}\n\nJSON was:\n{}",
-                    e,
-                    serde_json::to_string_pretty(&json_value).unwrap()
-                );
-            }
+        println!(
+            "Successfully deserialized {} working orders",
+            response.working_orders.len()
+        );
+        for (idx, order) in response.working_orders.iter().enumerate() {
+            println!(
+                "Order {}: epic={}, direction={:?}, size={}, level={}",
+                idx + 1,
+                order.working_order_data.epic,
+                order.working_order_data.direction,
+                order.working_order_data.order_size,
+                order.working_order_data.order_level
+            );
         }
+        Ok(())
     }
 }

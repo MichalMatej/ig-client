@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Market dealing status flags indicating trading availability
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum DealingFlag {
     /// Market is closed for trading

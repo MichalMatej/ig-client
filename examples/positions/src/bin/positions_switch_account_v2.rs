@@ -5,7 +5,7 @@ use std::sync::Arc;
 use tracing::{error, info};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     setup_logger();
 
     info!("=== Positions Switch Account Example (API v2) ===\n");

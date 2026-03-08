@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt};
 
 /// Time scale for chart data aggregation
-#[derive(Clone, Serialize, Deserialize, PartialEq, Default)]
+#[repr(u8)]
+#[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub enum ChartScale {
     /// Second-level aggregation
     #[serde(rename = "SECOND")]

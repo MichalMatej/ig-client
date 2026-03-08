@@ -3,7 +3,7 @@ use ig_client::utils::finance::calculate_pnl;
 use tracing::info;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     setup_logger();
 
     info!("=== IG Positions Example ===");

@@ -65,7 +65,7 @@ async fn process_updates(mut receiver: mpsc::Receiver<ItemUpdate>) {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     setup_logger();
 
     let client = Client::default();

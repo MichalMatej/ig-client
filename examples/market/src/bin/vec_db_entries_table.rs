@@ -22,7 +22,7 @@ struct DBEntryDisplay {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     setup_logger();
 
     info!("=== IG Vec DB Entries Table Example ===");

@@ -1,9 +1,8 @@
 use ig_client::prelude::*;
-use std::error::Error;
 use tracing::{error, info};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     // Configure logger
     setup_logger();
 
@@ -13,7 +12,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let client = Client::default();
 
     // Create a directory for the output file if it doesn't exist
-    std::fs::create_dir_all("Data").map_err(|e| Box::new(e) as Box<dyn Error>)?;
+    std::fs::create_dir_all("Data")?;
 
     // Build the complete market hierarchy
     info!("Building market hierarchy...");
@@ -27,7 +26,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
         Err(e) => {
             error!("Error building complete hierarchy: {:?}", e);
-            return Err(Box::new(e) as Box<dyn Error>);
+            return Err(e.into());
         }
     };
 
@@ -58,15 +57,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Ok(json) => json,
         Err(e) => {
             error!("Failed to serialize to JSON: {:?}", e);
-            return Err(Box::new(e) as Box<dyn Error>);
+            return Err(e.into());
         }
     };
 
     let filename = "Data/market_table.json";
-    if let Err(e) = std::fs::write(filename, &json) {
-        error!("Failed to write to file {}: {:?}", filename, e);
-        return Err(Box::new(e) as Box<dyn Error>);
-    }
+    std::fs::write(filename, &json)?;
     info!("✅ Complete market data saved to '{}'", filename);
     Ok(())
 }

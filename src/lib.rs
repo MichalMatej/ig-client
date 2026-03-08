@@ -32,7 +32,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! ig-client = "0.9.3"
+//! ig-client = "0.11.0"
 //! tokio = { version = "1", features = ["full"] }  # For async runtime
 //! dotenv = "0.15"                                 # For environment variable loading
 //! tracing = "0.1"                                # For logging
@@ -85,7 +85,7 @@
 //! use tracing_subscriber::FmtSubscriber;
 //!
 //! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! async fn main() -> Result<(), ig_client::error::AppError> {
 //!     // Initialize logging
 //!     let subscriber = FmtSubscriber::builder()
 //!         .with_max_level(Level::INFO)
@@ -172,7 +172,7 @@
 //! use std::sync::Arc;
 //!
 //! #[tokio::main]
-//! async fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! async fn main() -> Result<(), ig_client::error::AppError> {
 //!     // Load configuration from environment variables
 //!     let config = Arc::new(Config::new());
 //!     

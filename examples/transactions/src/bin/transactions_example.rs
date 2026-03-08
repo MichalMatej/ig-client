@@ -4,7 +4,7 @@ use ig_client::storage::utils::store_transactions;
 use tracing::{error, info};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), ig_client::error::AppError> {
     setup_logger();
 
     info!("=== IG Transactions Example ===");
@@ -24,10 +24,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(transactions) => transactions,
         Err(e) => {
             error!("Failed to get transactions: {}", e);
-            return Err(Box::<dyn std::error::Error>::from(format!(
-                "Failed to get transactions: {}",
-                e
-            )));
+            return Err(e);
         }
     };
 

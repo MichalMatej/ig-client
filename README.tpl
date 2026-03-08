@@ -42,7 +42,7 @@ This release adds comprehensive API coverage with the following new services:
 - `examples/costs/` - Indicative costs examples
 - Additional examples in `positions/`, `orders/`, and `other/`
 
-## Contribution and Contact
+## Contribution 
 
 We welcome contributions to this project! If you would like to contribute, please follow these steps:
 
@@ -52,11 +52,15 @@ We welcome contributions to this project! If you would like to contribute, pleas
 4. Commit your changes and push your branch to your forked repository.
 5. Submit a pull request to the main repository.
 
+### **Contact Information**
+
 If you have any questions, issues, or would like to provide feedback, please feel free to contact the project maintainer:
 
-**Joaquin Bejar Garcia**
-- Email: jb@taunais.com
-- GitHub: [joaquinbejar](https://github.com/joaquinbejar)
+- **Author**: Joaquín Béjar García
+- **Email**: jb@taunais.com
+- **Telegram**: [@joaquin_bejar](https://t.me/joaquin_bejar)
+- **Repository**: <https://github.com/joaquinbejar/ig-client>
+- **Documentation**: <https://docs.rs/ig-client>
 
 We appreciate your interest and look forward to your contributions!
 

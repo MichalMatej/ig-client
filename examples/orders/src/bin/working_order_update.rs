@@ -15,12 +15,13 @@
 
 use ig_client::application::client::Client;
 use ig_client::application::interfaces::order::OrderService;
+use ig_client::error::AppError;
 use ig_client::model::requests::UpdateWorkingOrderRequest;
 use ig_client::presentation::order::{OrderType, TimeInForce};
 use tracing::info;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), AppError> {
     tracing_subscriber::fmt::init();
 
     info!("Starting working order update example");

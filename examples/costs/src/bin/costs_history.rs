@@ -16,10 +16,11 @@
 
 use ig_client::application::client::Client;
 use ig_client::application::interfaces::costs::CostsService;
+use ig_client::error::AppError;
 use tracing::info;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), AppError> {
     tracing_subscriber::fmt::init();
 
     info!("Starting costs history example");

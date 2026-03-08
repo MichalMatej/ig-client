@@ -209,7 +209,7 @@ async fn get_navigation(
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), AppError> {
     // Initialize
     let config = Arc::new(Config::new());
     let auth = Arc::new(IgAuth::new(&config));

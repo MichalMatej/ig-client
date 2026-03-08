@@ -15,17 +15,17 @@ The new `Client` API provides a dramatically simplified interface for using the 
 ### Basic Usage
 
 ```rust
-use ig_client::client::Client;
-use ig_client::config::Config;
+use ig_client::application::client::Client;
+use ig_client::application::interfaces::account::AccountService;
+use ig_client::error::AppError;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create config and client
-    let config = Config::new();
-    let client = Client::new(config).await?;
+async fn main() -> Result<(), AppError> {
+    // Create client - authentication is handled automatically!
+    let client = Client::new();
     
-    // Make API calls - authentication is handled automatically!
-    let accounts: AccountsResponse = client.get("/accounts").await?;
+    // Make API calls using service traits
+    let accounts = client.get_accounts().await?;
     
     println!("Accounts: {:?}", accounts);
     Ok(())
@@ -289,12 +289,27 @@ for account in accounts.accounts {
 
 See the following examples:
 
-- `examples/simple_client_example.rs` - Basic usage
-- `examples/oauth_long_running_example.rs` - Long-running application pattern
+### Account & Authentication
+- `examples/other/` - Account preferences, operations
+- `examples/positions/` - Position management
+
+### Market Data
+- `examples/market/` - Market search and details
+- `examples/sentiment/` - Client sentiment data (v0.11.0)
+- `examples/watchlist/` - Watchlist management (v0.11.0)
+
+### Trading
+- `examples/orders/` - Order creation and management
+- `examples/costs/` - Indicative costs (v0.11.0)
+
+### Streaming
+- `examples/streaming/` - Real-time data streaming
+- `examples/chart/` - Chart data
 
 Run with:
 ```bash
-cargo run --example simple_client_example
+cargo run -p examples_watchlist --bin watchlist_list
+cargo run -p examples_sentiment --bin sentiment_single
 ```
 
 ## Benefits
@@ -350,8 +365,22 @@ tokio::spawn(async move {
 - **Efficient**: Reuses HTTP connections
 - **Smart Caching**: Session state is cached internally
 
+## Available Services (v0.11.0)
+
+The Client implements the following service traits:
+
+| Service | Description |
+|---------|-------------|
+| `AccountService` | Account info, positions, working orders, preferences, activity |
+| `MarketService` | Market search, details, historical prices, navigation |
+| `OrderService` | Order creation, confirmation, position management |
+| `WatchlistService` | Watchlist CRUD, add/remove instruments |
+| `SentimentService` | Client sentiment for single/multiple markets |
+| `CostsService` | Indicative costs for opening/closing positions |
+| `OperationsService` | API application management |
+
 ## See Also
 
 - [OAuth Token Refresh Guide](./OAUTH_TOKEN_REFRESH.md)
 - [Integration Guide](./INTEGRATION_GUIDE.md)
-- [API Documentation](../src/client.rs)
+- [API Documentation](../src/application/client.rs)

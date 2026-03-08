@@ -61,21 +61,19 @@ Config: 60 requests per 60 seconds, burst size 20
 The rate limiter is automatically used by the `Auth` module:
 
 ```rust
-use ig_client::application::config::Config;
-use ig_client::application::auth::Auth;
-use std::sync::Arc;
+use ig_client::application::client::Client;
+use ig_client::application::interfaces::account::AccountService;
+use ig_client::error::AppError;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Load configuration (includes rate limiter settings)
-    let config = Arc::new(Config::new());
+async fn main() -> Result<(), AppError> {
+    // Create client (rate limiter is automatically initialized)
+    let client = Client::new();
     
-    // Create auth instance (rate limiter is automatically initialized)
-    let auth = Auth::new(config);
+    // All API requests are automatically rate-limited
+    let accounts = client.get_accounts().await?;
     
-    // All authentication requests are automatically rate-limited
-    let session = auth.login().await?;
-    
+    println!("Accounts: {:?}", accounts);
     Ok(())
 }
 ```

@@ -128,7 +128,7 @@ mod tests {
         let test_data = TestStruct {
             name: "test".to_string(),
             value: 42,
-            optional: Some(3.14),
+            optional: Some(3.15),
         };
 
         let result = serialize_to_json(&test_data);
@@ -137,7 +137,7 @@ mod tests {
         let json = result.expect("should serialize");
         assert!(json.contains("\"name\":\"test\""));
         assert!(json.contains("\"value\":42"));
-        assert!(json.contains("\"optional\":3.14"));
+        assert!(json.contains("\"optional\":3.15"));
     }
 
     #[test]

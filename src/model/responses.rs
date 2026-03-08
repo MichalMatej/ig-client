@@ -1040,6 +1040,7 @@ mod tests {
     use std::fs;
 
     #[test]
+    #[ignore = "requires Data/working_orders.json file"]
     fn test_deserialize_working_orders_from_file() -> Result<(), Box<dyn std::error::Error>> {
         // Load the JSON file
         let json_content = fs::read_to_string("Data/working_orders.json")?;

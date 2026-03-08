@@ -407,27 +407,36 @@ mod tests {
 
     #[test]
     fn test_chart_data_is_tick() {
-        let mut data = ChartData::default();
-        data.scale = ChartScale::Tick;
+        let data = ChartData {
+            scale: ChartScale::Tick,
+            ..Default::default()
+        };
         assert!(data.is_tick());
         assert!(!data.is_candle());
     }
 
     #[test]
     fn test_chart_data_is_candle() {
-        let mut data = ChartData::default();
-        data.scale = ChartScale::OneMinute;
+        let data = ChartData {
+            scale: ChartScale::OneMinute,
+            ..Default::default()
+        };
         assert!(!data.is_tick());
         assert!(data.is_candle());
 
-        data.scale = ChartScale::Hour;
-        assert!(data.is_candle());
+        let data_hour = ChartData {
+            scale: ChartScale::Hour,
+            ..Default::default()
+        };
+        assert!(data_hour.is_candle());
     }
 
     #[test]
     fn test_chart_data_get_scale() {
-        let mut data = ChartData::default();
-        data.scale = ChartScale::FiveMinute;
+        let data = ChartData {
+            scale: ChartScale::FiveMinute,
+            ..Default::default()
+        };
         assert_eq!(*data.get_scale(), ChartScale::FiveMinute);
     }
 

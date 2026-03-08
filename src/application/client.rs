@@ -855,7 +855,8 @@ impl StreamerClient {
             client
                 .connection_options
                 .set_forced_transport(Some(Transport::WsStreaming));
-            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await;
+            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription)
+                .await?;
         }
 
         // Create a channel for PriceData and spawn a task to convert ItemUpdate to PriceData
@@ -931,7 +932,8 @@ impl StreamerClient {
             client
                 .connection_options
                 .set_forced_transport(Some(Transport::WsStreaming));
-            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await;
+            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription)
+                .await?;
         }
 
         // Create a channel for TradeFields and spawn a task to convert ItemUpdate to TradeFields
@@ -1005,7 +1007,8 @@ impl StreamerClient {
             client
                 .connection_options
                 .set_forced_transport(Some(Transport::WsStreaming));
-            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await;
+            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription)
+                .await?;
         }
 
         // Create a channel for AccountFields and spawn a task to convert ItemUpdate to AccountFields
@@ -1095,7 +1098,8 @@ impl StreamerClient {
             client
                 .connection_options
                 .set_forced_transport(Some(Transport::WsStreaming));
-            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await;
+            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription)
+                .await?;
         }
 
         // Create a channel for PriceData and spawn a task to convert ItemUpdate to PriceData
@@ -1190,7 +1194,8 @@ impl StreamerClient {
             client
                 .connection_options
                 .set_forced_transport(Some(Transport::WsStreaming));
-            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription).await;
+            LightstreamerClient::subscribe(client.subscription_sender.clone(), subscription)
+                .await?;
         }
 
         // Create a channel for ChartData and spawn a task to convert ItemUpdate to ChartData

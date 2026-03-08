@@ -174,3 +174,10 @@ impl From<String> for AppError {
         AppError::Generic(e)
     }
 }
+
+impl From<lightstreamer_rs::utils::LightstreamerError> for AppError {
+    #[cold]
+    fn from(e: lightstreamer_rs::utils::LightstreamerError) -> Self {
+        AppError::WebSocketError(e.to_string())
+    }
+}

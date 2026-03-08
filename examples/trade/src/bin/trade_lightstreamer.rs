@@ -57,7 +57,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     //
     {
         let mut ls = ls_client.lock().await;
-        LightstreamerClient::subscribe(ls.subscription_sender.clone(), subscription).await;
+        LightstreamerClient::subscribe(ls.subscription_sender.clone(), subscription).await?;
         ls.connection_options
             .set_forced_transport(Some(Transport::WsStreaming));
     }

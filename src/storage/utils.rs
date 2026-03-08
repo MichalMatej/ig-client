@@ -110,3 +110,186 @@ pub fn create_database_config_from_env() -> Result<DatabaseConfig, AppError> {
         max_connections,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+    struct TestStruct {
+        name: String,
+        value: i32,
+        optional: Option<f64>,
+    }
+
+    #[test]
+    fn test_serialize_to_json_simple_struct() {
+        let test_data = TestStruct {
+            name: "test".to_string(),
+            value: 42,
+            optional: Some(3.14),
+        };
+
+        let result = serialize_to_json(&test_data);
+        assert!(result.is_ok());
+
+        let json = result.expect("should serialize");
+        assert!(json.contains("\"name\":\"test\""));
+        assert!(json.contains("\"value\":42"));
+        assert!(json.contains("\"optional\":3.14"));
+    }
+
+    #[test]
+    fn test_serialize_to_json_with_none() {
+        let test_data = TestStruct {
+            name: "none_test".to_string(),
+            value: 0,
+            optional: None,
+        };
+
+        let result = serialize_to_json(&test_data);
+        assert!(result.is_ok());
+
+        let json = result.expect("should serialize");
+        assert!(json.contains("\"optional\":null"));
+    }
+
+    #[test]
+    fn test_deserialize_from_json_valid() {
+        let json = r#"{"name":"deserialized","value":100,"optional":2.5}"#;
+
+        let result: Result<TestStruct, _> = deserialize_from_json(json);
+        assert!(result.is_ok());
+
+        let data = result.expect("should deserialize");
+        assert_eq!(data.name, "deserialized");
+        assert_eq!(data.value, 100);
+        assert_eq!(data.optional, Some(2.5));
+    }
+
+    #[test]
+    fn test_deserialize_from_json_with_null() {
+        let json = r#"{"name":"null_test","value":50,"optional":null}"#;
+
+        let result: Result<TestStruct, _> = deserialize_from_json(json);
+        assert!(result.is_ok());
+
+        let data = result.expect("should deserialize");
+        assert_eq!(data.name, "null_test");
+        assert_eq!(data.value, 50);
+        assert!(data.optional.is_none());
+    }
+
+    #[test]
+    fn test_deserialize_from_json_invalid() {
+        let json = r#"{"invalid": "json for TestStruct"}"#;
+
+        let result: Result<TestStruct, _> = deserialize_from_json(json);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_deserialize_from_json_malformed() {
+        let json = r#"{"name": "incomplete"#;
+
+        let result: Result<TestStruct, _> = deserialize_from_json(json);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_serialize_deserialize_roundtrip() {
+        let original = TestStruct {
+            name: "roundtrip".to_string(),
+            value: 999,
+            optional: Some(1.234),
+        };
+
+        let json = serialize_to_json(&original).expect("should serialize");
+        let deserialized: TestStruct = deserialize_from_json(&json).expect("should deserialize");
+
+        assert_eq!(original, deserialized);
+    }
+
+    #[test]
+    fn test_serialize_vec() {
+        let vec = vec![
+            TestStruct {
+                name: "first".to_string(),
+                value: 1,
+                optional: None,
+            },
+            TestStruct {
+                name: "second".to_string(),
+                value: 2,
+                optional: Some(2.0),
+            },
+        ];
+
+        let result = serialize_to_json(&vec);
+        assert!(result.is_ok());
+
+        let json = result.expect("should serialize");
+        assert!(json.starts_with('['));
+        assert!(json.ends_with(']'));
+        assert!(json.contains("\"first\""));
+        assert!(json.contains("\"second\""));
+    }
+
+    #[test]
+    fn test_deserialize_vec() {
+        let json =
+            r#"[{"name":"a","value":1,"optional":null},{"name":"b","value":2,"optional":3.0}]"#;
+
+        let result: Result<Vec<TestStruct>, _> = deserialize_from_json(json);
+        assert!(result.is_ok());
+
+        let vec = result.expect("should deserialize");
+        assert_eq!(vec.len(), 2);
+        assert_eq!(vec[0].name, "a");
+        assert_eq!(vec[1].name, "b");
+    }
+
+    #[test]
+    fn test_serialize_empty_string() {
+        let test_data = TestStruct {
+            name: String::new(),
+            value: 0,
+            optional: None,
+        };
+
+        let result = serialize_to_json(&test_data);
+        assert!(result.is_ok());
+
+        let json = result.expect("should serialize");
+        assert!(json.contains("\"name\":\"\""));
+    }
+
+    #[test]
+    fn test_serialize_special_characters() {
+        let test_data = TestStruct {
+            name: "test\"with\\special\nchars".to_string(),
+            value: 0,
+            optional: None,
+        };
+
+        let result = serialize_to_json(&test_data);
+        assert!(result.is_ok());
+
+        let json = result.expect("should serialize");
+        // JSON should escape special characters
+        assert!(json.contains("\\\""));
+        assert!(json.contains("\\\\"));
+        assert!(json.contains("\\n"));
+    }
+
+    #[test]
+    fn test_database_config_creation() {
+        let config = DatabaseConfig {
+            url: "postgres://localhost/test".to_string(),
+            max_connections: 5,
+        };
+        assert_eq!(config.url, "postgres://localhost/test");
+        assert_eq!(config.max_connections, 5);
+    }
+}

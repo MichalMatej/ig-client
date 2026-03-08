@@ -674,3 +674,320 @@ pub struct MarketFields {
     #[serde(default)]
     pub update_time: Option<String>,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_market_data_is_call_returns_true_for_call_option() {
+        let market = MarketData {
+            epic: "test".to_string(),
+            instrument_name: "DAX CALL 18000".to_string(),
+            instrument_type: InstrumentType::default(),
+            expiry: "-".to_string(),
+            high_limit_price: None,
+            low_limit_price: None,
+            market_status: "TRADEABLE".to_string(),
+            net_change: None,
+            percentage_change: None,
+            update_time: None,
+            update_time_utc: None,
+            bid: Some(100.0),
+            offer: Some(101.0),
+        };
+        assert!(market.is_call());
+        assert!(!market.is_put());
+    }
+
+    #[test]
+    fn test_market_data_is_put_returns_true_for_put_option() {
+        let market = MarketData {
+            epic: "test".to_string(),
+            instrument_name: "DAX PUT 17000".to_string(),
+            instrument_type: InstrumentType::default(),
+            expiry: "-".to_string(),
+            high_limit_price: None,
+            low_limit_price: None,
+            market_status: "TRADEABLE".to_string(),
+            net_change: None,
+            percentage_change: None,
+            update_time: None,
+            update_time_utc: None,
+            bid: Some(50.0),
+            offer: Some(51.0),
+        };
+        assert!(market.is_put());
+        assert!(!market.is_call());
+    }
+
+    #[test]
+    fn test_market_data_neither_call_nor_put() {
+        let market = MarketData {
+            epic: "IX.D.DAX.DAILY.IP".to_string(),
+            instrument_name: "Germany 40".to_string(),
+            instrument_type: InstrumentType::default(),
+            expiry: "-".to_string(),
+            high_limit_price: None,
+            low_limit_price: None,
+            market_status: "TRADEABLE".to_string(),
+            net_change: None,
+            percentage_change: None,
+            update_time: None,
+            update_time_utc: None,
+            bid: Some(18000.0),
+            offer: Some(18001.0),
+        };
+        assert!(!market.is_call());
+        assert!(!market.is_put());
+    }
+
+    #[test]
+    fn test_market_state_default() {
+        let state = MarketState::default();
+        assert_eq!(state, MarketState::Offline);
+    }
+
+    #[test]
+    fn test_category_market_status_default() {
+        let status = CategoryMarketStatus::default();
+        assert_eq!(status, CategoryMarketStatus::Offline);
+    }
+
+    #[test]
+    fn test_step_unit_serialization() {
+        let points = StepUnit::Points;
+        let json = serde_json::to_string(&points).expect("serialize failed");
+        assert_eq!(json, "\"POINTS\"");
+
+        let pct = StepUnit::Percentage;
+        let json = serde_json::to_string(&pct).expect("serialize failed");
+        assert_eq!(json, "\"PERCENTAGE\"");
+    }
+
+    #[test]
+    fn test_step_distance_creation() {
+        let distance = StepDistance {
+            unit: Some(StepUnit::Points),
+            value: Some(1.5),
+        };
+        assert_eq!(distance.unit, Some(StepUnit::Points));
+        assert_eq!(distance.value, Some(1.5));
+    }
+
+    #[test]
+    fn test_market_fields_default() {
+        let fields = MarketFields::default();
+        assert!(fields.mid_open.is_none());
+        assert!(fields.high.is_none());
+        assert!(fields.offer.is_none());
+        assert!(fields.change.is_none());
+        assert!(fields.market_delay.is_none());
+        assert!(fields.low.is_none());
+        assert!(fields.bid.is_none());
+        assert!(fields.change_pct.is_none());
+        assert!(fields.market_state.is_none());
+        assert!(fields.update_time.is_none());
+    }
+
+    #[test]
+    fn test_presentation_market_data_default() {
+        let data = PresentationMarketData::default();
+        assert!(data.item_name.is_empty());
+        assert_eq!(data.item_pos, 0);
+        assert!(!data.is_snapshot);
+    }
+
+    #[test]
+    fn test_category_default() {
+        let cat = Category::default();
+        assert!(cat.code.is_empty());
+        assert!(!cat.non_tradeable);
+    }
+
+    #[test]
+    fn test_category_instrument_default() {
+        let inst = CategoryInstrument::default();
+        assert!(inst.epic.is_empty());
+        assert!(inst.instrument_name.is_empty());
+        assert_eq!(inst.market_status, CategoryMarketStatus::Offline);
+    }
+
+    #[test]
+    fn test_market_state_serialization() {
+        let tradeable = MarketState::Tradeable;
+        let json = serde_json::to_string(&tradeable).expect("serialize failed");
+        assert_eq!(json, "\"TRADEABLE\"");
+
+        let closed = MarketState::Closed;
+        let json = serde_json::to_string(&closed).expect("serialize failed");
+        assert_eq!(json, "\"CLOSED\"");
+    }
+
+    #[test]
+    fn test_price_point_creation() {
+        let point = PricePoint {
+            bid: Some(100.5),
+            ask: Some(101.0),
+            last_traded: Some(100.75),
+        };
+        assert_eq!(point.bid, Some(100.5));
+        assert_eq!(point.ask, Some(101.0));
+        assert_eq!(point.last_traded, Some(100.75));
+    }
+
+    #[test]
+    fn test_price_allowance_creation() {
+        let allowance = PriceAllowance {
+            remaining_allowance: 100,
+            total_allowance: 1000,
+            allowance_expiry: 3600,
+        };
+        assert_eq!(allowance.remaining_allowance, 100);
+        assert_eq!(allowance.total_allowance, 1000);
+        assert_eq!(allowance.allowance_expiry, 3600);
+    }
+
+    #[test]
+    fn test_expiry_details_creation() {
+        let expiry = ExpiryDetails {
+            last_dealing_date: "2024-12-31".to_string(),
+            settlement_info: Some("Cash settlement".to_string()),
+        };
+        assert_eq!(expiry.last_dealing_date, "2024-12-31");
+        assert_eq!(expiry.settlement_info, Some("Cash settlement".to_string()));
+    }
+
+    #[test]
+    fn test_market_navigation_node_creation() {
+        let node = MarketNavigationNode {
+            id: "12345".to_string(),
+            name: "Indices".to_string(),
+        };
+        assert_eq!(node.id, "12345");
+        assert_eq!(node.name, "Indices");
+    }
+
+    #[test]
+    fn test_market_node_creation() {
+        let node = MarketNode {
+            id: "node1".to_string(),
+            name: "Test Node".to_string(),
+            children: Vec::new(),
+            markets: Vec::new(),
+        };
+        assert_eq!(node.id, "node1");
+        assert_eq!(node.name, "Test Node");
+        assert!(node.children.is_empty());
+        assert!(node.markets.is_empty());
+    }
+
+    #[test]
+    fn test_currency_creation() {
+        let currency = Currency {
+            code: "USD".to_string(),
+            symbol: Some("$".to_string()),
+            base_exchange_rate: Some(1.0),
+            exchange_rate: Some(1.0),
+            is_default: Some(true),
+        };
+        assert_eq!(currency.code, "USD");
+        assert_eq!(currency.symbol, Some("$".to_string()));
+        assert_eq!(currency.is_default, Some(true));
+    }
+
+    #[test]
+    fn test_create_market_fields_with_valid_data() {
+        let mut fields_map: HashMap<String, Option<String>> = HashMap::new();
+        fields_map.insert("BID".to_string(), Some("100.5".to_string()));
+        fields_map.insert("OFFER".to_string(), Some("101.0".to_string()));
+        fields_map.insert("HIGH".to_string(), Some("102.0".to_string()));
+        fields_map.insert("LOW".to_string(), Some("99.0".to_string()));
+        fields_map.insert("CHANGE".to_string(), Some("1.5".to_string()));
+        fields_map.insert("CHANGE_PCT".to_string(), Some("1.5".to_string()));
+        fields_map.insert("MARKET_STATE".to_string(), Some("tradeable".to_string()));
+        fields_map.insert("MARKET_DELAY".to_string(), Some("0".to_string()));
+        fields_map.insert("UPDATE_TIME".to_string(), Some("12:30:00".to_string()));
+
+        let result = PresentationMarketData::create_market_fields(&fields_map);
+        assert!(result.is_ok());
+
+        let fields = result.expect("should parse");
+        assert_eq!(fields.bid, Some(100.5));
+        assert_eq!(fields.offer, Some(101.0));
+        assert_eq!(fields.high, Some(102.0));
+        assert_eq!(fields.low, Some(99.0));
+        assert_eq!(fields.change, Some(1.5));
+        assert_eq!(fields.market_state, Some(MarketState::Tradeable));
+        assert_eq!(fields.market_delay, Some(false));
+        assert_eq!(fields.update_time, Some("12:30:00".to_string()));
+    }
+
+    #[test]
+    fn test_create_market_fields_with_empty_map() {
+        let fields_map: HashMap<String, Option<String>> = HashMap::new();
+        let result = PresentationMarketData::create_market_fields(&fields_map);
+        assert!(result.is_ok());
+
+        let fields = result.expect("should parse");
+        assert!(fields.bid.is_none());
+        assert!(fields.offer.is_none());
+    }
+
+    #[test]
+    fn test_create_market_fields_invalid_market_state() {
+        let mut fields_map: HashMap<String, Option<String>> = HashMap::new();
+        fields_map.insert(
+            "MARKET_STATE".to_string(),
+            Some("invalid_state".to_string()),
+        );
+
+        let result = PresentationMarketData::create_market_fields(&fields_map);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_create_market_fields_invalid_market_delay() {
+        let mut fields_map: HashMap<String, Option<String>> = HashMap::new();
+        fields_map.insert("MARKET_DELAY".to_string(), Some("invalid".to_string()));
+
+        let result = PresentationMarketData::create_market_fields(&fields_map);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_create_market_fields_all_market_states() {
+        let states = vec![
+            ("closed", MarketState::Closed),
+            ("offline", MarketState::Offline),
+            ("tradeable", MarketState::Tradeable),
+            ("edit", MarketState::Edit),
+            ("auction", MarketState::Auction),
+            ("auction_no_edit", MarketState::AuctionNoEdit),
+            ("suspended", MarketState::Suspended),
+            ("on_auction", MarketState::OnAuction),
+            ("on_auction_no_edit", MarketState::OnAuctionNoEdits),
+        ];
+
+        for (state_str, expected_state) in states {
+            let mut fields_map: HashMap<String, Option<String>> = HashMap::new();
+            fields_map.insert("MARKET_STATE".to_string(), Some(state_str.to_string()));
+
+            let result = PresentationMarketData::create_market_fields(&fields_map);
+            assert!(result.is_ok(), "Failed for state: {}", state_str);
+            let fields = result.expect("should parse");
+            assert_eq!(fields.market_state, Some(expected_state));
+        }
+    }
+
+    #[test]
+    fn test_market_delay_values() {
+        let mut fields_map: HashMap<String, Option<String>> = HashMap::new();
+        fields_map.insert("MARKET_DELAY".to_string(), Some("1".to_string()));
+
+        let result = PresentationMarketData::create_market_fields(&fields_map);
+        assert!(result.is_ok());
+        let fields = result.expect("should parse");
+        assert_eq!(fields.market_delay, Some(true));
+    }
+}

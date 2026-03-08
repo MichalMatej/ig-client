@@ -282,3 +282,140 @@ pub async fn get_table_statistics(pool: &PgPool, epic: &str) -> Result<TableStat
         max_price: row.get::<Option<f64>, _>("max_price").unwrap_or(0.0),
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_snapshot_time_slash_format() {
+        let result = parse_snapshot_time("2024/01/15 14:30:00");
+        assert!(result.is_ok());
+        let dt = result.expect("should parse");
+        assert_eq!(
+            dt.format("%Y-%m-%d %H:%M:%S").to_string(),
+            "2024-01-15 14:30:00"
+        );
+    }
+
+    #[test]
+    fn test_parse_snapshot_time_dash_format() {
+        let result = parse_snapshot_time("2024-01-15 14:30:00");
+        assert!(result.is_ok());
+        let dt = result.expect("should parse");
+        assert_eq!(
+            dt.format("%Y-%m-%d %H:%M:%S").to_string(),
+            "2024-01-15 14:30:00"
+        );
+    }
+
+    #[test]
+    fn test_parse_snapshot_time_without_seconds_slash() {
+        let result = parse_snapshot_time("2024/01/15 14:30");
+        assert!(result.is_ok());
+        let dt = result.expect("should parse");
+        assert_eq!(dt.format("%Y-%m-%d %H:%M").to_string(), "2024-01-15 14:30");
+    }
+
+    #[test]
+    fn test_parse_snapshot_time_without_seconds_dash() {
+        let result = parse_snapshot_time("2024-01-15 14:30");
+        assert!(result.is_ok());
+        let dt = result.expect("should parse");
+        assert_eq!(dt.format("%Y-%m-%d %H:%M").to_string(), "2024-01-15 14:30");
+    }
+
+    #[test]
+    fn test_parse_snapshot_time_invalid_format() {
+        let result = parse_snapshot_time("invalid-date");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_snapshot_time_empty_string() {
+        let result = parse_snapshot_time("");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_snapshot_time_partial_date() {
+        let result = parse_snapshot_time("2024-01-15");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_snapshot_time_midnight() {
+        let result = parse_snapshot_time("2024/12/31 00:00:00");
+        assert!(result.is_ok());
+        let dt = result.expect("should parse");
+        assert_eq!(dt.format("%H:%M:%S").to_string(), "00:00:00");
+    }
+
+    #[test]
+    fn test_parse_snapshot_time_end_of_day() {
+        let result = parse_snapshot_time("2024/12/31 23:59:59");
+        assert!(result.is_ok());
+        let dt = result.expect("should parse");
+        assert_eq!(dt.format("%H:%M:%S").to_string(), "23:59:59");
+    }
+
+    #[test]
+    fn test_storage_stats_default() {
+        let stats = StorageStats::default();
+        assert_eq!(stats.inserted, 0);
+        assert_eq!(stats.updated, 0);
+        assert_eq!(stats.skipped, 0);
+        assert_eq!(stats.total_processed, 0);
+    }
+
+    #[test]
+    fn test_storage_stats_creation() {
+        let stats = StorageStats {
+            inserted: 10,
+            updated: 5,
+            skipped: 2,
+            total_processed: 17,
+        };
+        assert_eq!(stats.inserted, 10);
+        assert_eq!(stats.updated, 5);
+        assert_eq!(stats.skipped, 2);
+        assert_eq!(stats.total_processed, 17);
+    }
+
+    #[test]
+    fn test_table_stats_creation() {
+        let stats = TableStats {
+            total_records: 100,
+            earliest_date: "2024-01-01".to_string(),
+            latest_date: "2024-12-31".to_string(),
+            avg_close_price: 150.5,
+            min_price: 100.0,
+            max_price: 200.0,
+        };
+        assert_eq!(stats.total_records, 100);
+        assert_eq!(stats.earliest_date, "2024-01-01");
+        assert_eq!(stats.latest_date, "2024-12-31");
+        assert!((stats.avg_close_price - 150.5).abs() < f64::EPSILON);
+        assert!((stats.min_price - 100.0).abs() < f64::EPSILON);
+        assert!((stats.max_price - 200.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_parse_snapshot_time_different_years() {
+        let years = ["2020", "2021", "2022", "2023", "2024", "2025"];
+        for year in years {
+            let timestamp = format!("{}/06/15 12:00:00", year);
+            let result = parse_snapshot_time(&timestamp);
+            assert!(result.is_ok(), "Failed for year: {}", year);
+        }
+    }
+
+    #[test]
+    fn test_parse_snapshot_time_all_months() {
+        for month in 1..=12 {
+            let timestamp = format!("2024/{:02}/15 12:00:00", month);
+            let result = parse_snapshot_time(&timestamp);
+            assert!(result.is_ok(), "Failed for month: {}", month);
+        }
+    }
+}

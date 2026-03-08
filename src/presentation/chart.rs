@@ -360,3 +360,114 @@ impl From<&ItemUpdate> for ChartData {
         Self::from_item_update(item_update).unwrap_or_default()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_chart_scale_default() {
+        let scale = ChartScale::default();
+        assert_eq!(scale, ChartScale::Tick);
+    }
+
+    #[test]
+    fn test_chart_scale_debug() {
+        assert_eq!(format!("{:?}", ChartScale::Second), "SECOND");
+        assert_eq!(format!("{:?}", ChartScale::OneMinute), "1MINUTE");
+        assert_eq!(format!("{:?}", ChartScale::FiveMinute), "5MINUTE");
+        assert_eq!(format!("{:?}", ChartScale::Hour), "HOUR");
+        assert_eq!(format!("{:?}", ChartScale::Tick), "TICK");
+    }
+
+    #[test]
+    fn test_chart_scale_display() {
+        assert_eq!(format!("{}", ChartScale::Second), "SECOND");
+        assert_eq!(format!("{}", ChartScale::Tick), "TICK");
+    }
+
+    #[test]
+    fn test_chart_scale_serialization() {
+        let scale = ChartScale::OneMinute;
+        let json = serde_json::to_string(&scale).expect("serialize failed");
+        assert_eq!(json, "\"1MINUTE\"");
+
+        let deserialized: ChartScale = serde_json::from_str(&json).expect("deserialize failed");
+        assert_eq!(deserialized, ChartScale::OneMinute);
+    }
+
+    #[test]
+    fn test_chart_data_default() {
+        let data = ChartData::default();
+        assert!(data.item_name.is_empty());
+        assert_eq!(data.item_pos, 0);
+        assert_eq!(data.scale, ChartScale::Tick);
+        assert!(!data.is_snapshot);
+    }
+
+    #[test]
+    fn test_chart_data_is_tick() {
+        let mut data = ChartData::default();
+        data.scale = ChartScale::Tick;
+        assert!(data.is_tick());
+        assert!(!data.is_candle());
+    }
+
+    #[test]
+    fn test_chart_data_is_candle() {
+        let mut data = ChartData::default();
+        data.scale = ChartScale::OneMinute;
+        assert!(!data.is_tick());
+        assert!(data.is_candle());
+
+        data.scale = ChartScale::Hour;
+        assert!(data.is_candle());
+    }
+
+    #[test]
+    fn test_chart_data_get_scale() {
+        let mut data = ChartData::default();
+        data.scale = ChartScale::FiveMinute;
+        assert_eq!(*data.get_scale(), ChartScale::FiveMinute);
+    }
+
+    #[test]
+    fn test_chart_fields_default() {
+        let fields = ChartFields::default();
+        assert!(fields.bid.is_none());
+        assert!(fields.offer.is_none());
+        assert!(fields.last_traded_price.is_none());
+        assert!(fields.day_high.is_none());
+        assert!(fields.day_low.is_none());
+    }
+
+    #[test]
+    fn test_chart_fields_creation() {
+        let fields = ChartFields {
+            bid: Some(100.5),
+            offer: Some(101.0),
+            last_traded_price: Some(100.75),
+            day_high: Some(102.0),
+            day_low: Some(99.0),
+            ..Default::default()
+        };
+        assert_eq!(fields.bid, Some(100.5));
+        assert_eq!(fields.offer, Some(101.0));
+        assert_eq!(fields.last_traded_price, Some(100.75));
+    }
+
+    #[test]
+    fn test_chart_scale_equality() {
+        assert_eq!(ChartScale::Tick, ChartScale::Tick);
+        assert_ne!(ChartScale::Tick, ChartScale::Hour);
+    }
+
+    #[test]
+    fn test_chart_scale_hash() {
+        use std::collections::HashSet;
+        let mut set = HashSet::new();
+        set.insert(ChartScale::Tick);
+        set.insert(ChartScale::Tick);
+        assert_eq!(set.len(), 1);
+    }
+}

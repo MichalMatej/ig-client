@@ -731,3 +731,239 @@ pub(crate) fn get_streaming_chart_fields(fields: &HashSet<StreamingChartField>) 
     }
     out
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_streaming_market_field_default() {
+        let field = StreamingMarketField::default();
+        assert_eq!(field, StreamingMarketField::Offer);
+    }
+
+    #[test]
+    fn test_streaming_market_field_debug() {
+        assert_eq!(format!("{:?}", StreamingMarketField::Bid), "BID");
+        assert_eq!(format!("{:?}", StreamingMarketField::Offer), "OFFER");
+        assert_eq!(format!("{:?}", StreamingMarketField::High), "HIGH");
+        assert_eq!(format!("{:?}", StreamingMarketField::Low), "LOW");
+        assert_eq!(format!("{:?}", StreamingMarketField::Change), "CHANGE");
+        assert_eq!(
+            format!("{:?}", StreamingMarketField::ChangePct),
+            "CHANGE_PCT"
+        );
+        assert_eq!(
+            format!("{:?}", StreamingMarketField::UpdateTime),
+            "UPDATE_TIME"
+        );
+        assert_eq!(
+            format!("{:?}", StreamingMarketField::MarketDelay),
+            "MARKET_DELAY"
+        );
+        assert_eq!(
+            format!("{:?}", StreamingMarketField::MarketState),
+            "MARKET_STATE"
+        );
+        assert_eq!(format!("{:?}", StreamingMarketField::MidOpen), "MID_OPEN");
+    }
+
+    #[test]
+    fn test_streaming_market_field_display() {
+        assert_eq!(format!("{}", StreamingMarketField::Bid), "BID");
+        assert_eq!(format!("{}", StreamingMarketField::Offer), "OFFER");
+    }
+
+    #[test]
+    fn test_get_streaming_market_fields_empty() {
+        let fields: HashSet<StreamingMarketField> = HashSet::new();
+        let result = get_streaming_market_fields(&fields);
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_get_streaming_market_fields_single() {
+        let mut fields = HashSet::new();
+        fields.insert(StreamingMarketField::Bid);
+        let result = get_streaming_market_fields(&fields);
+        assert_eq!(result.len(), 1);
+        assert!(result.contains(&"BID".to_string()));
+    }
+
+    #[test]
+    fn test_get_streaming_market_fields_multiple() {
+        let mut fields = HashSet::new();
+        fields.insert(StreamingMarketField::Bid);
+        fields.insert(StreamingMarketField::Offer);
+        fields.insert(StreamingMarketField::High);
+        let result = get_streaming_market_fields(&fields);
+        assert_eq!(result.len(), 3);
+        assert!(result.contains(&"BID".to_string()));
+        assert!(result.contains(&"OFFER".to_string()));
+        assert!(result.contains(&"HIGH".to_string()));
+    }
+
+    #[test]
+    fn test_streaming_price_field_default() {
+        let field = StreamingPriceField::default();
+        assert_eq!(field, StreamingPriceField::AskPrice5);
+    }
+
+    #[test]
+    fn test_streaming_price_field_debug() {
+        assert_eq!(format!("{:?}", StreamingPriceField::High), "HIGH");
+        assert_eq!(format!("{:?}", StreamingPriceField::Low), "LOW");
+        assert_eq!(format!("{:?}", StreamingPriceField::MidOpen), "MID_OPEN");
+        assert_eq!(format!("{:?}", StreamingPriceField::BidPrice1), "BIDPRICE1");
+        assert_eq!(format!("{:?}", StreamingPriceField::AskPrice1), "ASKPRICE1");
+    }
+
+    #[test]
+    fn test_streaming_price_field_display() {
+        assert_eq!(format!("{}", StreamingPriceField::High), "HIGH");
+        assert_eq!(format!("{}", StreamingPriceField::BidPrice1), "BIDPRICE1");
+    }
+
+    #[test]
+    fn test_streaming_account_field_default() {
+        let field = StreamingAccountDataField::default();
+        assert_eq!(field, StreamingAccountDataField::Pnl);
+    }
+
+    #[test]
+    fn test_streaming_account_field_debug() {
+        assert_eq!(format!("{:?}", StreamingAccountDataField::Pnl), "PNL");
+        assert_eq!(
+            format!("{:?}", StreamingAccountDataField::Deposit),
+            "DEPOSIT"
+        );
+        assert_eq!(format!("{:?}", StreamingAccountDataField::Margin), "MARGIN");
+        assert_eq!(format!("{:?}", StreamingAccountDataField::Equity), "EQUITY");
+    }
+
+    #[test]
+    fn test_streaming_account_field_display() {
+        assert_eq!(format!("{}", StreamingAccountDataField::Pnl), "PNL");
+        assert_eq!(format!("{}", StreamingAccountDataField::Equity), "EQUITY");
+    }
+
+    #[test]
+    fn test_get_streaming_account_fields_empty() {
+        let fields: HashSet<StreamingAccountDataField> = HashSet::new();
+        let result = get_streaming_account_data_fields(&fields);
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_get_streaming_account_fields_multiple() {
+        let mut fields = HashSet::new();
+        fields.insert(StreamingAccountDataField::Pnl);
+        fields.insert(StreamingAccountDataField::Equity);
+        let result = get_streaming_account_data_fields(&fields);
+        assert_eq!(result.len(), 2);
+        assert!(result.contains(&"PNL".to_string()));
+        assert!(result.contains(&"EQUITY".to_string()));
+    }
+
+    #[test]
+    fn test_streaming_chart_field_default() {
+        let field = StreamingChartField::default();
+        assert_eq!(field, StreamingChartField::Ltv);
+    }
+
+    #[test]
+    fn test_streaming_chart_field_debug() {
+        assert_eq!(format!("{:?}", StreamingChartField::Bid), "BID");
+        assert_eq!(format!("{:?}", StreamingChartField::Ofr), "OFR");
+        assert_eq!(format!("{:?}", StreamingChartField::Ltp), "LTP");
+        assert_eq!(format!("{:?}", StreamingChartField::Ltv), "LTV");
+        assert_eq!(format!("{:?}", StreamingChartField::Utm), "UTM");
+        assert_eq!(format!("{:?}", StreamingChartField::DayHigh), "DAY_HIGH");
+        assert_eq!(format!("{:?}", StreamingChartField::DayLow), "DAY_LOW");
+    }
+
+    #[test]
+    fn test_streaming_chart_field_display() {
+        assert_eq!(format!("{}", StreamingChartField::Bid), "BID");
+        assert_eq!(format!("{}", StreamingChartField::Ofr), "OFR");
+    }
+
+    #[test]
+    fn test_get_streaming_chart_fields_empty() {
+        let fields: HashSet<StreamingChartField> = HashSet::new();
+        let result = get_streaming_chart_fields(&fields);
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_get_streaming_chart_fields_multiple() {
+        let mut fields = HashSet::new();
+        fields.insert(StreamingChartField::Bid);
+        fields.insert(StreamingChartField::Ofr);
+        fields.insert(StreamingChartField::Ltp);
+        let result = get_streaming_chart_fields(&fields);
+        assert_eq!(result.len(), 3);
+        assert!(result.contains(&"BID".to_string()));
+        assert!(result.contains(&"OFR".to_string()));
+        assert!(result.contains(&"LTP".to_string()));
+    }
+
+    #[test]
+    fn test_streaming_market_field_serialization() {
+        let field = StreamingMarketField::Bid;
+        let json = serde_json::to_string(&field).expect("serialize failed");
+        assert_eq!(json, "\"BID\"");
+
+        let deserialized: StreamingMarketField =
+            serde_json::from_str(&json).expect("deserialize failed");
+        assert_eq!(deserialized, StreamingMarketField::Bid);
+    }
+
+    #[test]
+    fn test_streaming_account_field_serialization() {
+        let field = StreamingAccountDataField::Pnl;
+        let json = serde_json::to_string(&field).expect("serialize failed");
+        assert_eq!(json, "\"PNL\"");
+
+        let deserialized: StreamingAccountDataField =
+            serde_json::from_str(&json).expect("deserialize failed");
+        assert_eq!(deserialized, StreamingAccountDataField::Pnl);
+    }
+
+    #[test]
+    fn test_streaming_chart_field_serialization() {
+        let field = StreamingChartField::Bid;
+        let json = serde_json::to_string(&field).expect("serialize failed");
+        assert_eq!(json, "\"BID\"");
+
+        let deserialized: StreamingChartField =
+            serde_json::from_str(&json).expect("deserialize failed");
+        assert_eq!(deserialized, StreamingChartField::Bid);
+    }
+
+    #[test]
+    fn test_streaming_market_field_equality() {
+        let field1 = StreamingMarketField::Bid;
+        let field2 = StreamingMarketField::Bid;
+        let field3 = StreamingMarketField::Offer;
+
+        assert_eq!(field1, field2);
+        assert_ne!(field1, field3);
+    }
+
+    #[test]
+    fn test_streaming_market_field_hash() {
+        let mut set = HashSet::new();
+        set.insert(StreamingMarketField::Bid);
+        set.insert(StreamingMarketField::Bid); // Duplicate
+
+        assert_eq!(set.len(), 1);
+    }
+
+    #[test]
+    fn test_streaming_market_field_clone() {
+        let field = StreamingMarketField::High;
+        let cloned = field.clone();
+        assert_eq!(field, cloned);
+    }
+}

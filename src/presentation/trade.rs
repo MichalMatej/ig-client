@@ -267,3 +267,132 @@ impl From<&ItemUpdate> for TradeData {
         Self::from_item_update(item_update).unwrap_or_default()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_trade_data_default() {
+        let data = TradeData::default();
+        assert!(data.item_name.is_empty());
+        assert_eq!(data.item_pos, 0);
+        assert!(!data.is_snapshot);
+    }
+
+    #[test]
+    fn test_trade_fields_default() {
+        let fields = TradeFields::default();
+        assert!(fields.confirms.is_none());
+        assert!(fields.opu.is_none());
+        assert!(fields.wou.is_none());
+    }
+
+    #[test]
+    fn test_open_position_update_default() {
+        let opu = OpenPositionUpdate::default();
+        assert!(opu.deal_reference.is_none());
+        assert!(opu.deal_id.is_none());
+        assert!(opu.direction.is_none());
+        assert!(opu.epic.is_none());
+        assert!(opu.status.is_none());
+        assert!(opu.level.is_none());
+        assert!(opu.size.is_none());
+    }
+
+    #[test]
+    fn test_working_order_update_default() {
+        let wou = WorkingOrderUpdate::default();
+        assert!(wou.deal_reference.is_none());
+        assert!(wou.deal_id.is_none());
+        assert!(wou.direction.is_none());
+        assert!(wou.epic.is_none());
+        assert!(wou.status.is_none());
+        assert!(wou.level.is_none());
+        assert!(wou.size.is_none());
+    }
+
+    #[test]
+    fn test_open_position_update_creation() {
+        let opu = OpenPositionUpdate {
+            deal_reference: Some("REF123".to_string()),
+            deal_id: Some("DEAL456".to_string()),
+            direction: Some(Direction::Buy),
+            epic: Some("IX.D.DAX.DAILY.IP".to_string()),
+            status: Some(Status::Open),
+            level: Some(18000.0),
+            size: Some(1.0),
+            currency: Some("EUR".to_string()),
+            ..Default::default()
+        };
+        assert_eq!(opu.deal_reference, Some("REF123".to_string()));
+        assert_eq!(opu.deal_id, Some("DEAL456".to_string()));
+        assert_eq!(opu.direction, Some(Direction::Buy));
+        assert_eq!(opu.level, Some(18000.0));
+    }
+
+    #[test]
+    fn test_working_order_update_creation() {
+        let wou = WorkingOrderUpdate {
+            deal_reference: Some("WO_REF".to_string()),
+            deal_id: Some("WO_DEAL".to_string()),
+            direction: Some(Direction::Sell),
+            epic: Some("CS.D.EURUSD.CFD.IP".to_string()),
+            status: Some(Status::Amended),
+            level: Some(1.1000),
+            size: Some(10000.0),
+            order_type: Some(OrderType::Limit),
+            time_in_force: Some(TimeInForce::GoodTillCancelled),
+            ..Default::default()
+        };
+        assert_eq!(wou.deal_reference, Some("WO_REF".to_string()));
+        assert_eq!(wou.direction, Some(Direction::Sell));
+        assert_eq!(wou.order_type, Some(OrderType::Limit));
+    }
+
+    #[test]
+    fn test_trade_data_creation() {
+        let data = TradeData {
+            item_name: "TRADE:123".to_string(),
+            item_pos: 1,
+            fields: TradeFields::default(),
+            changed_fields: TradeFields::default(),
+            is_snapshot: true,
+        };
+        assert_eq!(data.item_name, "TRADE:123");
+        assert_eq!(data.item_pos, 1);
+        assert!(data.is_snapshot);
+    }
+
+    #[test]
+    fn test_trade_fields_with_confirms() {
+        let fields = TradeFields {
+            confirms: Some("confirmed".to_string()),
+            opu: None,
+            wou: None,
+        };
+        assert_eq!(fields.confirms, Some("confirmed".to_string()));
+    }
+
+    #[test]
+    fn test_open_position_update_serialization() {
+        let opu = OpenPositionUpdate {
+            deal_id: Some("DEAL123".to_string()),
+            level: Some(100.5),
+            ..Default::default()
+        };
+        let json = serde_json::to_string(&opu).expect("serialize failed");
+        assert!(json.contains("DEAL123"));
+    }
+
+    #[test]
+    fn test_working_order_update_serialization() {
+        let wou = WorkingOrderUpdate {
+            deal_id: Some("WO123".to_string()),
+            level: Some(50.0),
+            ..Default::default()
+        };
+        let json = serde_json::to_string(&wou).expect("serialize failed");
+        assert!(json.contains("WO123"));
+    }
+}

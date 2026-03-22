@@ -47,7 +47,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-ig-client = "0.11.0"
+ig-client = "0.11.1"
 tokio = { version = "1", features = ["full"] }  # For async runtime
 dotenv = "0.15"                                 # For environment variable loading
 tracing = "0.1"                                # For logging
@@ -379,7 +379,7 @@ The library provides the following service traits for interacting with the IG Ma
 - `update_working_order(deal_id, update)` - Update an existing working order
 - `delete_working_order(deal_id)` - Delete a working order
 
-#### WatchlistService (New in 0.11.0)
+#### WatchlistService (New in 0.11.1)
 - `get_watchlists()` - Get all watchlists
 - `create_watchlist(name, epics)` - Create a new watchlist
 - `get_watchlist(id)` - Get watchlist markets
@@ -387,19 +387,19 @@ The library provides the following service traits for interacting with the IG Ma
 - `add_to_watchlist(id, epic)` - Add instrument to watchlist
 - `remove_from_watchlist(id, epic)` - Remove instrument from watchlist
 
-#### SentimentService (New in 0.11.0)
+#### SentimentService (New in 0.11.1)
 - `get_client_sentiment(market_ids)` - Get sentiment for multiple markets
 - `get_client_sentiment_by_market(market_id)` - Get sentiment for a single market
 - `get_related_sentiment(market_id)` - Get sentiment for related markets
 
-#### CostsService (New in 0.11.0)
+#### CostsService (New in 0.11.1)
 - `get_indicative_costs_open(request)` - Get costs for opening a position
 - `get_indicative_costs_close(request)` - Get costs for closing a position
 - `get_indicative_costs_edit(request)` - Get costs for editing a position
 - `get_costs_history(from, to)` - Get historical costs
 - `get_durable_medium(quote_reference)` - Get durable medium document
 
-#### OperationsService (New in 0.11.0)
+#### OperationsService (New in 0.11.1)
 - `get_client_apps()` - Get API application details
 - `disable_client_app()` - Disable current API key
 
@@ -520,12 +520,12 @@ make workflow     # Run all CI workflow steps locally
 │   ├── application/       # Core business logic
 │   │   ├── interfaces/    # Service trait interfaces
 │   │   │   ├── account.rs # Account service trait
-│   │   │   ├── costs.rs   # Costs service trait (v0.11.0)
+│   │   │   ├── costs.rs   # Costs service trait (v0.11.1)
 │   │   │   ├── market.rs  # Market service trait
-│   │   │   ├── operations.rs # Operations service trait (v0.11.0)
+│   │   │   ├── operations.rs # Operations service trait (v0.11.1)
 │   │   │   ├── order.rs   # Order service trait
-│   │   │   ├── sentiment.rs # Sentiment service trait (v0.11.0)
-│   │   │   └── watchlist.rs # Watchlist service trait (v0.11.0)
+│   │   │   ├── sentiment.rs # Sentiment service trait (v0.11.1)
+│   │   │   └── watchlist.rs # Watchlist service trait (v0.11.1)
 │   │   ├── auth.rs        # Authentication handler
 │   │   ├── client.rs      # Main API client
 │   │   └── config.rs      # Configuration handling
@@ -546,13 +546,13 @@ make workflow     # Run all CI workflow steps locally
 │       └── retry.rs       # Retry utilities
 ├── examples/              # Example applications
 │   ├── chart/             # Chart examples
-│   ├── costs/             # Costs examples (v0.11.0)
+│   ├── costs/             # Costs examples (v0.11.1)
 │   ├── market/            # Market examples
 │   ├── orders/            # Order examples
 │   ├── positions/         # Position examples
-│   ├── sentiment/         # Sentiment examples (v0.11.0)
+│   ├── sentiment/         # Sentiment examples (v0.11.1)
 │   ├── streaming/         # Streaming examples
-│   ├── watchlist/         # Watchlist examples (v0.11.0)
+│   ├── watchlist/         # Watchlist examples (v0.11.1)
 │   └── other/             # Other examples
 ├── tests/                 # Tests
 │   ├── integration/       # Integration tests
@@ -573,7 +573,7 @@ Contributions are welcome! Here's how you can contribute:
 
 Please make sure your code passes all tests and linting checks before submitting a pull request.
 
-## What's New in 0.11.0
+## What's New in 0.11.1
 
 This release adds comprehensive API coverage with the following new services:
 

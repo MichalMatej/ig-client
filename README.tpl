@@ -12,7 +12,7 @@
 
 {{readme}}
 
-## What's New in 0.11.0
+## What's New in 0.11.1
 
 This release adds comprehensive API coverage with the following new services:
 

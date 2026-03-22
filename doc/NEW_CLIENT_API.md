@@ -295,12 +295,12 @@ See the following examples:
 
 ### Market Data
 - `examples/market/` - Market search and details
-- `examples/sentiment/` - Client sentiment data (v0.11.0)
-- `examples/watchlist/` - Watchlist management (v0.11.0)
+- `examples/sentiment/` - Client sentiment data (v0.11.1)
+- `examples/watchlist/` - Watchlist management (v0.11.1)
 
 ### Trading
 - `examples/orders/` - Order creation and management
-- `examples/costs/` - Indicative costs (v0.11.0)
+- `examples/costs/` - Indicative costs (v0.11.1)
 
 ### Streaming
 - `examples/streaming/` - Real-time data streaming
@@ -365,7 +365,7 @@ tokio::spawn(async move {
 - **Efficient**: Reuses HTTP connections
 - **Smart Caching**: Session state is cached internally
 
-## Available Services (v0.11.0)
+## Available Services (v0.11.1)
 
 The Client implements the following service traits:
 

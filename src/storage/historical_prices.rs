@@ -13,6 +13,7 @@ pub async fn initialize_historical_prices_table(pool: &PgPool) -> Result<(), sql
         CREATE TABLE IF NOT EXISTS historical_prices (
             id BIGSERIAL PRIMARY KEY,
             epic VARCHAR(255) NOT NULL,
+            resolution VARCHAR(50) NOT NULL,
             snapshot_time TIMESTAMPTZ NOT NULL,
             open_bid DOUBLE PRECISION,
             open_ask DOUBLE PRECISION,
@@ -29,18 +30,51 @@ pub async fn initialize_historical_prices_table(pool: &PgPool) -> Result<(), sql
             last_traded_volume BIGINT,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-            UNIQUE(epic, snapshot_time)
+            UNIQUE(epic, resolution, snapshot_time)
         )
         "#,
     )
     .execute(pool)
     .await?;
 
+    // Ensure the table schema has 'resolution' for backwards compatibility
+    if let Err(e) = sqlx::query(
+        r#"
+        ALTER TABLE historical_prices 
+        ADD COLUMN IF NOT EXISTS resolution VARCHAR(50) NOT NULL DEFAULT 'UNKNOWN'
+        "#,
+    )
+    .execute(pool)
+    .await
+    {
+        info!(
+            "Column 'resolution' check/migration skipped or already present: {}",
+            e
+        );
+    }
+
+    // Attempt to drop the old unique constraint
+    let _ = sqlx::query(
+        r#"
+        ALTER TABLE historical_prices 
+        DROP CONSTRAINT IF EXISTS historical_prices_epic_snapshot_time_key;
+        
+        ALTER TABLE historical_prices
+        DROP CONSTRAINT IF EXISTS historical_prices_epic_resolution_snapshot_time_key;
+        
+        ALTER TABLE historical_prices 
+        ADD CONSTRAINT historical_prices_epic_resolution_snapshot_time_key 
+        UNIQUE (epic, resolution, snapshot_time);
+        "#,
+    )
+    .execute(pool)
+    .await;
+
     // Create index for better query performance
     sqlx::query(
         r#"
-        CREATE INDEX IF NOT EXISTS idx_historical_prices_epic_time 
-        ON historical_prices(epic, snapshot_time DESC)
+        CREATE INDEX IF NOT EXISTS idx_historical_prices_epic_res_time 
+        ON historical_prices(epic, resolution, snapshot_time DESC)
         "#,
     )
     .execute(pool)
@@ -103,6 +137,7 @@ pub struct StorageStats {
 pub async fn store_historical_prices(
     pool: &PgPool,
     epic: &str,
+    resolution: &str,
     prices: &[HistoricalPrice],
 ) -> Result<StorageStats, sqlx::Error> {
     let mut stats = StorageStats::default();
@@ -136,14 +171,14 @@ pub async fn store_historical_prices(
         let result = sqlx::query(
             r#"
             INSERT INTO historical_prices (
-                epic, snapshot_time,
+                epic, resolution, snapshot_time,
                 open_bid, open_ask, open_last_traded,
                 high_bid, high_ask, high_last_traded,
                 low_bid, low_ask, low_last_traded,
                 close_bid, close_ask, close_last_traded,
                 last_traded_volume
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-            ON CONFLICT (epic, snapshot_time) 
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+            ON CONFLICT (epic, resolution, snapshot_time) 
             DO UPDATE SET
                 open_bid = EXCLUDED.open_bid,
                 open_ask = EXCLUDED.open_ask,
@@ -162,6 +197,7 @@ pub async fn store_historical_prices(
             "#,
         )
         .bind(epic)
+        .bind(resolution)
         .bind(snapshot_time)
         .bind(price.open_price.bid)
         .bind(price.open_price.ask)
@@ -183,9 +219,10 @@ pub async fn store_historical_prices(
         if result.rows_affected() > 0 {
             // Query to check if this was an insert or update
             let count: i64 = sqlx::query_scalar(
-                "SELECT COUNT(*) FROM historical_prices WHERE epic = $1 AND snapshot_time = $2 AND created_at = updated_at"
+                "SELECT COUNT(*) FROM historical_prices WHERE epic = $1 AND resolution = $2 AND snapshot_time = $3 AND created_at = updated_at"
             )
                 .bind(epic)
+                .bind(resolution)
                 .bind(snapshot_time)
                 .fetch_one(&mut *tx)
                 .await?;
@@ -255,23 +292,47 @@ pub struct TableStats {
 }
 
 /// Get statistics for the historical_prices table
-pub async fn get_table_statistics(pool: &PgPool, epic: &str) -> Result<TableStats, sqlx::Error> {
-    let row = sqlx::query(
-        r#"
-        SELECT 
-            COUNT(*) as total_records,
-            MIN(snapshot_time)::text as earliest_date,
-            MAX(snapshot_time)::text as latest_date,
-            AVG(close_bid) as avg_close_price,
-            MIN(LEAST(low_bid, low_ask)) as min_price,
-            MAX(GREATEST(high_bid, high_ask)) as max_price
-        FROM historical_prices 
-        WHERE epic = $1
-        "#,
-    )
-    .bind(epic)
-    .fetch_one(pool)
-    .await?;
+pub async fn get_table_statistics(
+    pool: &PgPool,
+    epic: &str,
+    resolution: Option<&str>,
+) -> Result<TableStats, sqlx::Error> {
+    let row = if let Some(res) = resolution {
+        sqlx::query(
+            r#"
+            SELECT 
+                COUNT(*) as total_records,
+                MIN(snapshot_time)::text as earliest_date,
+                MAX(snapshot_time)::text as latest_date,
+                AVG(close_bid) as avg_close_price,
+                MIN(LEAST(low_bid, low_ask)) as min_price,
+                MAX(GREATEST(high_bid, high_ask)) as max_price
+            FROM historical_prices 
+            WHERE epic = $1 AND resolution = $2
+            "#,
+        )
+        .bind(epic)
+        .bind(res)
+        .fetch_one(pool)
+        .await?
+    } else {
+        sqlx::query(
+            r#"
+            SELECT 
+                COUNT(*) as total_records,
+                MIN(snapshot_time)::text as earliest_date,
+                MAX(snapshot_time)::text as latest_date,
+                AVG(close_bid) as avg_close_price,
+                MIN(LEAST(low_bid, low_ask)) as min_price,
+                MAX(GREATEST(high_bid, high_ask)) as max_price
+            FROM historical_prices 
+            WHERE epic = $1
+            "#,
+        )
+        .bind(epic)
+        .fetch_one(pool)
+        .await?
+    };
 
     Ok(TableStats {
         total_records: row.get("total_records"),

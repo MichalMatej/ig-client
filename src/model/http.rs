@@ -245,7 +245,7 @@ impl HttpClient {
             &url,
             headers,
             body,
-            RetryConfig::infinite(),
+            RetryConfig::default(),
         )
         .await
     }
@@ -302,7 +302,7 @@ impl HttpClient {
             &url,
             headers,
             &Some(body),
-            RetryConfig::infinite(),
+            RetryConfig::default(),
         )
         .await
     }

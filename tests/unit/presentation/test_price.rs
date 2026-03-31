@@ -31,7 +31,7 @@ fn test_dealing_flag_all_variants() {
         DealingFlag::Call,
         DealingFlag::Deal,
         DealingFlag::Edit,
-        DealingFlag::ClosingOnly,
+        DealingFlag::ClosingsOnly,
         DealingFlag::DealNoEdit,
         DealingFlag::Auction,
         DealingFlag::AuctionNoEdit,
@@ -205,4 +205,141 @@ fn test_price_data_clone() {
     let cloned = price.clone();
     assert_eq!(price.item_name, cloned.item_name);
     assert_eq!(price.item_pos, cloned.item_pos);
+}
+
+#[test]
+fn test_price_data_from_item_update_empty_dlg_flag_is_none() {
+    let mut fields = HashMap::new();
+    // Server sends '#' for DLG_FLAG (null) which lightstreamer-rs maps to Some("")
+    fields.insert("DLG_FLAG".to_string(), Some("".to_string()));
+    fields.insert("BID".to_string(), Some("100.5".to_string()));
+
+    let item_update = ItemUpdate {
+        item_name: Some("MARKET:TEST".to_string()),
+        item_pos: 1,
+        is_snapshot: false,
+        fields,
+        changed_fields: HashMap::new(),
+    };
+
+    let result = PriceData::from_item_update(&item_update);
+    assert!(result.is_ok(), "empty DLG_FLAG should not cause an error");
+    let price_data = result.unwrap();
+    assert!(
+        price_data.fields.dealing_flag.is_none(),
+        "empty DLG_FLAG should be parsed as None"
+    );
+}
+
+#[test]
+fn test_price_data_from_item_update_closingsonly_flag() {
+    let mut fields = HashMap::new();
+    fields.insert("DLG_FLAG".to_string(), Some("CLOSINGSONLY".to_string()));
+
+    let item_update = ItemUpdate {
+        item_name: Some("MARKET:TEST".to_string()),
+        item_pos: 1,
+        is_snapshot: false,
+        fields,
+        changed_fields: HashMap::new(),
+    };
+
+    let result = PriceData::from_item_update(&item_update);
+    assert!(result.is_ok());
+    let price_data = result.unwrap();
+    assert_eq!(
+        price_data.fields.dealing_flag,
+        Some(DealingFlag::ClosingsOnly)
+    );
+}
+
+#[test]
+fn test_price_data_from_item_update_closingonly_backward_compat() {
+    let mut fields = HashMap::new();
+    // Old spelling without 'S' should also work
+    fields.insert("DLG_FLAG".to_string(), Some("CLOSINGONLY".to_string()));
+
+    let item_update = ItemUpdate {
+        item_name: Some("MARKET:TEST".to_string()),
+        item_pos: 1,
+        is_snapshot: false,
+        fields,
+        changed_fields: HashMap::new(),
+    };
+
+    let result = PriceData::from_item_update(&item_update);
+    assert!(result.is_ok());
+    let price_data = result.unwrap();
+    assert_eq!(
+        price_data.fields.dealing_flag,
+        Some(DealingFlag::ClosingsOnly)
+    );
+}
+
+#[test]
+fn test_price_data_from_item_update_with_net_chg_fields() {
+    let mut fields = HashMap::new();
+    fields.insert("BID".to_string(), Some("100.5".to_string()));
+    fields.insert("NET_CHG".to_string(), Some("-0.5".to_string()));
+    fields.insert("NET_CHG_PCT".to_string(), Some("-0.49".to_string()));
+    fields.insert("DELAY".to_string(), Some("0".to_string()));
+
+    let item_update = ItemUpdate {
+        item_name: Some("MARKET:TEST".to_string()),
+        item_pos: 1,
+        is_snapshot: true,
+        fields,
+        changed_fields: HashMap::new(),
+    };
+
+    let result = PriceData::from_item_update(&item_update);
+    assert!(result.is_ok());
+
+    let price_data = result.unwrap();
+    assert_eq!(price_data.fields.net_chg, Some(-0.5));
+    assert_eq!(price_data.fields.net_chg_pct, Some(-0.49));
+    assert_eq!(price_data.fields.delay, Some(0.0));
+}
+
+#[test]
+fn test_price_data_from_trait_does_not_panic_on_error() {
+    let mut fields = HashMap::new();
+    // An unknown dealing flag that should cause from_item_update to return Err
+    fields.insert("DLG_FLAG".to_string(), Some("UNKNOWN_FLAG".to_string()));
+
+    let item_update = ItemUpdate {
+        item_name: Some("MARKET:TEST".to_string()),
+        item_pos: 1,
+        is_snapshot: false,
+        fields,
+        changed_fields: HashMap::new(),
+    };
+
+    // From<&ItemUpdate> should not panic; it returns a default PriceData
+    let price_data = PriceData::from(&item_update);
+    assert_eq!(price_data.item_name, "");
+    assert_eq!(price_data.item_pos, 0);
+}
+
+#[test]
+fn test_price_data_from_item_update_dlg_flag_with_trailing_spaces() {
+    let mut fields = HashMap::new();
+    // Server sends DLG_FLAG with trailing whitespace padding
+    fields.insert("DLG_FLAG".to_string(), Some("DEAL         ".to_string()));
+
+    let item_update = ItemUpdate {
+        item_name: Some("MARKET:TEST".to_string()),
+        item_pos: 1,
+        is_snapshot: false,
+        fields,
+        changed_fields: HashMap::new(),
+    };
+
+    let result = PriceData::from_item_update(&item_update);
+    assert!(
+        result.is_ok(),
+        "DLG_FLAG with trailing spaces should not error"
+    );
+    let price_data = result.unwrap();
+    assert_eq!(price_data.fields.dealing_flag, Some(DealingFlag::Deal));
 }

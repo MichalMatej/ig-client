@@ -19,7 +19,7 @@ pub enum DealingFlag {
     /// Market is open for editing orders
     Edit,
     /// Market is open for closing positions only
-    ClosingOnly,
+    ClosingsOnly,
     /// Market is open for dealing but not editing
     DealNoEdit,
     /// Market is in auction phase
@@ -582,6 +582,24 @@ pub struct PriceFields {
     #[serde(rename = "DLG_FLAG")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dealing_flag: Option<DealingFlag>,
+
+    /// Price change versus open
+    #[serde(rename = "NET_CHG")]
+    #[serde(with = "string_as_float_opt")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub net_chg: Option<f64>,
+
+    /// Percentage change versus open
+    #[serde(rename = "NET_CHG_PCT")]
+    #[serde(with = "string_as_float_opt")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub net_chg_pct: Option<f64>,
+
+    /// Delayed price flag (0 = false, 1 = true)
+    #[serde(rename = "DELAY")]
+    #[serde(with = "string_as_float_opt")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delay: Option<f64>,
 }
 
 impl PriceData {
@@ -641,9 +659,12 @@ impl PriceData {
             }
         };
 
-        // Parse dealing flag (case-insensitive to handle Lightstreamer lowercase conversion)
+        // Parse dealing flag (case-insensitive to handle potential lowercase conversion).
+        // An empty string (produced when the server sends '#' for null) is treated as None.
         let dealing_flag = match get_field("DLG_FLAG")
             .as_deref()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
             .map(|s| s.to_uppercase())
             .as_deref()
         {
@@ -651,7 +672,7 @@ impl PriceData {
             Some("CALL") => Some(DealingFlag::Call),
             Some("DEAL") => Some(DealingFlag::Deal),
             Some("EDIT") => Some(DealingFlag::Edit),
-            Some("CLOSINGONLY") => Some(DealingFlag::ClosingOnly),
+            Some("CLOSINGSONLY") | Some("CLOSINGONLY") => Some(DealingFlag::ClosingsOnly),
             Some("DEALNOEDIT") => Some(DealingFlag::DealNoEdit),
             Some("AUCTION") => Some(DealingFlag::Auction),
             Some("AUCTIONNOEDIT") => Some(DealingFlag::AuctionNoEdit),
@@ -775,12 +796,18 @@ impl PriceData {
 
             timestamp: parse_float("TIMESTAMP")?,
             dealing_flag,
+            net_chg: parse_float("NET_CHG")?,
+            net_chg_pct: parse_float("NET_CHG_PCT")?,
+            delay: parse_float("DELAY")?,
         })
     }
 }
 
 impl From<&ItemUpdate> for PriceData {
     fn from(item_update: &ItemUpdate) -> Self {
-        PriceData::from_item_update(item_update).unwrap_or_default()
+        PriceData::from_item_update(item_update).unwrap_or_else(|e| {
+            tracing::warn!(error = %e, "failed to convert ItemUpdate to PriceData, returning default");
+            PriceData::default()
+        })
     }
 }

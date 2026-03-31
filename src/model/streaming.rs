@@ -274,6 +274,14 @@ pub enum StreamingPriceField {
     /// Dealing flag
     #[serde(rename = "DLG_FLAG")]
     DlgFlag,
+    /// Price change versus open
+    #[serde(rename = "NET_CHG")]
+    NetChg,
+    /// Percentage change versus open
+    #[serde(rename = "NET_CHG_PCT")]
+    NetChgPct,
+    /// Delayed price flag (0 = false, 1 = true)
+    Delay,
 }
 
 impl Debug for StreamingPriceField {
@@ -362,6 +370,9 @@ impl Debug for StreamingPriceField {
             StreamingPriceField::C5AskSize5 => "C5ASKSIZE5",
             StreamingPriceField::Timestamp => "TIMESTAMP",
             StreamingPriceField::DlgFlag => "DLG_FLAG",
+            StreamingPriceField::NetChg => "NET_CHG",
+            StreamingPriceField::NetChgPct => "NET_CHG_PCT",
+            StreamingPriceField::Delay => "DELAY",
         };
         write!(f, "{}", field_name)
     }
@@ -502,6 +513,9 @@ pub(crate) fn get_streaming_price_fields(fields: &HashSet<StreamingPriceField>) 
             // Misc
             StreamingPriceField::Timestamp => "TIMESTAMP",
             StreamingPriceField::DlgFlag => "DLG_FLAG",
+            StreamingPriceField::NetChg => "NET_CHG",
+            StreamingPriceField::NetChgPct => "NET_CHG_PCT",
+            StreamingPriceField::Delay => "DELAY",
         }
     };
 

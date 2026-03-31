@@ -82,7 +82,7 @@ async fn main() -> Result<(), ig_client::error::AppError> {
     let processor_handle = tokio::spawn(process_updates(receiver));
 
     // Create a subscription for market data
-    let epic = "MARKET:OP.D.OTCSPXWK.6720C.IP".to_string();
+    let epic = "DO.D.OTCSILVER.51.IP".to_string();
     info!("Subscribing to market: {}", epic);
 
     let mut subscription = Subscription::new(
@@ -93,6 +93,8 @@ async fn main() -> Result<(), ig_client::error::AppError> {
             "LOW".to_string(),
             "BID".to_string(),
             "OFFER".to_string(),
+            "STRIKE_PRICE".to_string(),
+            "ODDS".to_string(),
         ]),
     )?;
 

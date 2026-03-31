@@ -103,6 +103,10 @@ async fn main() -> Result<(), ig_client::error::AppError> {
             "BIDSIZE1".to_string(),
             "ASKSIZE1".to_string(),
             "DLG_FLAG".to_string(),
+            "C1BIDSIZE1".to_string(),
+            "C1ASKSIZE1".to_string(),
+            "TIMESTAMP".to_string(),
+            "NET_CHG".to_string(),
         ]),
     )?;
 

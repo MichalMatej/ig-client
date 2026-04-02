@@ -121,6 +121,15 @@ pub enum AppError {
     /// API rate limit exceeded
     #[error("rate limit exceeded")]
     RateLimitExceeded,
+    /// Historical data allowance exhausted (weekly quota of data points)
+    ///
+    /// The `allowance_expiry` field indicates the number of seconds
+    /// until the allowance resets. Retrying before that is pointless.
+    #[error("historical data allowance exceeded, resets in {allowance_expiry} seconds")]
+    HistoricalDataAllowanceExceeded {
+        /// Seconds until the weekly allowance resets
+        allowance_expiry: u64,
+    },
     /// Error during serialization or deserialization
     #[error("serialization error: {0}")]
     SerializationError(String),

@@ -3,6 +3,10 @@ name = "examples_simples"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "historical_prices_example"
+path = "src/bin/historical_prices_example.rs"
+
 [dependencies]
 ig-client = { workspace = true }
 tracing = { workspace = true }

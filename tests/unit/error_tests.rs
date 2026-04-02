@@ -332,3 +332,36 @@ fn test_auth_error_unexpected() {
     assert_display_contains(&auth_error, "unexpected http status");
     assert_display_contains(&auth_error, "400");
 }
+
+#[test]
+fn test_app_error_historical_data_allowance_exceeded() {
+    let error = AppError::HistoricalDataAllowanceExceeded {
+        allowance_expiry: 604800,
+    };
+    assert_display_contains(&error, "historical data allowance exceeded");
+    assert_display_contains(&error, "604800");
+}
+
+#[test]
+fn test_app_error_historical_data_allowance_exceeded_zero_expiry() {
+    let error = AppError::HistoricalDataAllowanceExceeded {
+        allowance_expiry: 0,
+    };
+    assert_display_contains(&error, "historical data allowance exceeded");
+    assert_display_contains(&error, "0 seconds");
+}
+
+#[test]
+fn test_app_error_historical_data_allowance_is_not_rate_limit() {
+    let historical = AppError::HistoricalDataAllowanceExceeded {
+        allowance_expiry: 3600,
+    };
+    let rate_limit = AppError::RateLimitExceeded;
+
+    // Ensure the two error types produce different display messages
+    let historical_msg = historical.to_string();
+    let rate_limit_msg = rate_limit.to_string();
+    assert_ne!(historical_msg, rate_limit_msg);
+    assert!(historical_msg.contains("historical data allowance"));
+    assert!(!historical_msg.contains("rate limit exceeded"));
+}

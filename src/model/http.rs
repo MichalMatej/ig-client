@@ -475,10 +475,22 @@ pub async fn make_http_request<B: Serialize>(
         match status {
             StatusCode::FORBIDDEN => {
                 let body_text = response.text().await.unwrap_or_default();
+
+                // Historical data allowance is a weekly quota (default 10,000 data points).
+                // Retrying is pointless — fail fast and let the caller decide.
+                if body_text.contains("exceeded-account-historical-data-allowance") {
+                    error!(
+                        "Historical data allowance exceeded (weekly quota exhausted): {}",
+                        body_text
+                    );
+                    return Err(AppError::HistoricalDataAllowanceExceeded {
+                        allowance_expiry: 0,
+                    });
+                }
+
                 if body_text.contains("exceeded-api-key-allowance")
                     || body_text.contains("exceeded-account-allowance")
                     || body_text.contains("exceeded-account-trading-allowance")
-                    || body_text.contains("exceeded-account-historical-data-allowance")
                 {
                     retry_count += 1;
 
